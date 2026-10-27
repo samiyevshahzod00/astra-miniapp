@@ -1,0 +1,54 @@
+name: Publish Astra static Mini App to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - style.css
+      - app.js
+      - config.js
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: astra-github-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate static-only publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check config.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          files=('index.html','style.css','app.js','config.js')
+          for f in files:
+              assert Path(f).is_file(), f
+              assert Path(f).stat().st_size < 200_000, f
+          text='\n'.join(Path(f).read_text(encoding='utf-8') for f in files)
+          for forbidden in ('telegram_token', 'telegram_chat_id', 'BEGIN PRIVATE KEY', 'ghp_', 'C:\\agg_bot'):
+              assert forbidden not in text, forbidden
+          assert 'apiBase: ""' in Path('config.js').read_text(encoding='utf-8')
+          print('PUBLIC_STATIC_ONLY_SECRETS_CHECK_PASS')
+          PY
+          mkdir -p public
+          cp index.html style.css app.js config.js public/
+          touch public/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4
