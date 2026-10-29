@@ -1,18 +1,48 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark">
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://telegram.org; style-src 'self'; connect-src https:; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<meta name="referrer" content="no-referrer"><title>Astra • Hisobot</title><link rel="stylesheet" href="./style.css">
+<title>Astra • Savdo jadvali</title><link rel="stylesheet" href="./style.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script><script defer src="./config.js"></script><script defer src="./app.js"></script></head>
-<body><main class="wrap">
-<header class="top"><div><div class="eyebrow">ASTRA / DEMO</div><h1>Hisobot</h1><p class="subtitle">Telegram Mini App · faqat ko‘rish</p></div><span id="live" class="pill muted" aria-live="polite">Ulanmoqda</span></header>
-<div id="notice" class="notice" role="status" aria-live="polite">Tekshirilmoqda…</div>
-<section class="cards" aria-label="Bot nazorati">
-<article class="card"><div class="key">Bot holati</div><div id="health" class="big">—</div><small id="freshness">Ma’lumot tekshirilmoqda</small></article>
-<article class="card"><div class="key">Savdoga kirish</div><div id="entry" class="big">—</div><small id="entry-hint">Risk va pauza nazorati</small></article>
-<article class="card"><div class="key">Ochiq pozitsiyalar</div><div id="positions" class="big">—</div><small>Faqat ma’lumot, yopish o‘chirilgan</small></article>
-<article class="card"><div class="key">Broker vaqti</div><div id="clock" class="big">—</div><small id="capacity">Quvvat/limit: —</small></article></section>
-<section class="card section" aria-labelledby="strategy-title"><div class="section-head"><h2 id="strategy-title">Strategiyalar</h2><span class="chip">Sozlamalar</span></div>
-<div class="line"><span>H1 + M30</span><strong id="h1">—</strong></div><div class="line"><span>Eski M15</span><strong id="m15">—</strong></div><div class="line"><span>Eski M30</span><strong id="m30">—</strong></div><div class="line"><span>Crypto M5</span><strong id="crypto">—</strong></div><div class="line"><span>GOLD M5</span><strong id="gold">—</strong></div>
-<p class="footnote">ON — faqat sozlamada yoqilgan. Bu BUY/SELL signali yoki bitimga ruxsat degani emas.</p></section>
-<section class="card section" aria-labelledby="blocks-title"><h2 id="blocks-title">Kirish cheklovlari</h2><p id="blocks" class="blocks">Tekshirilmoqda…</p></section>
-<footer><span id="updated">Oxirgi yangilanish: —</span><span>Read-only · hech qanday buyurtma yuborilmaydi</span></footer></main></body></html>
+<body><main class="shell">
+<header class="top"><div><div class="eyebrow">ASTRA <span class="demo">DEMO</span></div><h1>Savdo paneli</h1><p class="sub">Excel uslubidagi jonli broker jadvali · Telegram orqali boshqarish</p></div>
+<div class="head-status"><span class="pill" id="live">Tekshirilmoqda…</span><small id="updated">—</small></div></header>
+<div id="notice" class="notice" role="status" aria-live="polite">Telegram sessiyasi va VPS holati tekshirilmoqda…</div>
+<nav class="tabs" aria-label="Bo‘limlar"><button type="button" class="tab active" data-tab="trades">📋 Bitimlar</button><button type="button" class="tab" data-tab="signals">📈 Signallar</button><button type="button" class="tab" data-tab="status">⚙️ Holat</button></nav>
+
+<section id="tab-trades" class="pane" aria-labelledby="trades-heading">
+<div class="summary">
+<div class="metric"><span>Ochiq bitimlar</span><strong id="count">—</strong></div>
+<div class="metric"><span>Joriy foyda/zarar</span><strong id="floating">—</strong></div>
+<div class="metric"><span>Foydada</span><strong id="wins" class="good">—</strong></div>
+<div class="metric"><span>Zararda</span><strong id="losses" class="bad">—</strong></div>
+</div>
+<div class="sheet">
+<div class="sectionhead"><h2 id="trades-heading">Ochiq pozitsiyalar</h2><span class="hint" id="trades-source">Brokerdan ma’lumot olinmoqda…</span></div>
+<div class="toolbar">
+<button type="button" id="close-profit" data-action="profit" class="action goodbtn" disabled>🟢 Foydadagilarni yopish</button>
+<button type="button" id="close-loss" data-action="loss" class="action badbtn" disabled>🔴 Zarardagilarni yopish</button>
+<button type="button" id="close-all" data-action="all" class="action danger" disabled>⛔ Hammasini yopish</button>
+</div>
+<div class="tablewrap" role="region" aria-label="Ochiq bitimlar jadvali" tabindex="0"><table>
+<thead><tr><th>№ / Ticket</th><th>Instrument</th><th>Yo‘nalish</th><th>Lot</th><th>Kirish</th><th>Joriy narx</th><th>SL</th><th>TP</th><th>Foyda/zarar</th><th>Swap</th><th>Amal</th></tr></thead>
+<tbody id="trade-rows"><tr><td colspan="11" class="empty">Tekshirilmoqda…</td></tr></tbody>
+<tfoot><tr><th colspan="8">Jami ochiq P/L</th><th id="total-pnl">—</th><th id="total-swap">—</th><th>—</th></tr></tfoot></table></div>
+<p class="footnote">P/L — brokerdagi hozirgi suzuvchi natija; yopilish narxida o‘zgarishi mumkin. «Yopish» avval Telegram botga tasdiqlash so‘rovi yuboradi, pozitsiyani darhol yopmaydi.</p>
+</div></section>
+
+<section id="tab-signals" class="pane hidden" aria-labelledby="signals-heading">
+<div class="sheet">
+<div class="sectionhead"><h2 id="signals-heading">Signal grafikasi</h2><span class="hint" id="signal-updated">—</span></div>
+<p class="footnote">Grafikdagi belgilar haqiqiy oxirgi skan holatini bildiradi. Ular sham narxi grafigi yoki BUY/SELL tavsiyasi emas.</p>
+<div class="legend"><span><i class="dot buy"></i> BUY</span><span><i class="dot sell"></i> SELL</span><span><i class="dot hold"></i> Signal yo‘q / blok</span></div>
+<div class="signalchart" id="signal-chart" role="img" aria-label="Instrumentlar bo‘yicha haqiqiy signal skan holatlari">Tekshirilmoqda…</div>
+<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th>Instrument</th><th>TF</th><th>Yo‘nalish</th><th>Skan sababi</th><th>Vaqt (UTC)</th></tr></thead><tbody id="signal-rows"><tr><td colspan="5" class="empty">Tekshirilmoqda…</td></tr></tbody></table></div>
+</div></section>
+
+<section id="tab-status" class="pane hidden" aria-labelledby="status-heading">
+<div class="summary"><div class="metric"><span>Bot</span><strong id="health">—</strong></div><div class="metric"><span>Yangi kirish</span><strong id="entry">—</strong></div><div class="metric"><span>Broker vaqti</span><strong id="clock">—</strong></div><div class="metric"><span>Status yoshi</span><strong id="freshness">—</strong></div></div>
+<div class="sheet"><h2 id="status-heading">Strategiyalar</h2><div class="statusline"><span>H1 + M30</span><strong id="h1">—</strong></div><div class="statusline"><span>Klassik M15</span><strong id="m15">—</strong></div><div class="statusline"><span>Klassik M30</span><strong id="m30">—</strong></div><div class="statusline"><span>Crypto M5</span><strong id="crypto">—</strong></div><div class="statusline"><span>GOLD M5</span><strong id="gold">—</strong></div><p class="footnote">ON — strategiya sozlamada yoqilgan, bitim ochilishi kafolatlanmaydi.</p></div>
+<div class="sheet"><h2>Risk va blok holati</h2><p id="blocks" class="blocks">Tekshirilmoqda…</p></div></section>
+<footer><span>ASTRA DEMO · owner-only Telegram</span><span>SL/TP, risk va PAUSED himoyalari saqlanadi</span></footer>
+</main></body></html>
