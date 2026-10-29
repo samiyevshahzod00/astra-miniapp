@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),tg=window.Telegram?.WebApp,conf=window.ASTRA_PUBLIC_CONFIG||{},api=String(conf.apiBase||'');
 const allowedApi=(()=>{try{const u=new URL(api);return u.protocol==='https:'&&!u.username&&!u.password&&!u.search&&!u.hash&&!u.port&&(u.pathname==='/'||u.pathname==='')}catch{return false}})();
-const cols='ABCDEFGHIJK',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades'};
+const cols='ABCDEFGHIJKLMNOPQRST',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades'};
 function value(id,v){const t=byId(id);if(t)t.textContent=String(v??'—')}
 function money(v,c='USD'){return Number.isFinite(v)?(v>=0?'+':'')+v.toFixed(2)+' '+c:'#N/A'}
 function dec(v,n=5){if(!Number.isFinite(v))return '#N/A';return Number(v).toFixed(n).replace(/0+$/,'').replace(/\.$/,'')}
@@ -11,11 +11,11 @@ function button(name,action,ticket,enabled,kind){
 }
 function row(cells=[],klass=''){
  const tr=document.createElement('tr');tr.className=klass;const num=document.createElement('th');num.className='rownum';num.scope='row';num.textContent=String(body.childElementCount+1);tr.append(num);
- let index=0;for(const item of cells){if(index>=11)break;const obj=item&&typeof item==='object'&&!(item instanceof Node)?item:{v:item};const span=Math.max(1,Math.min(11-index,Number(obj.span)||1));const cell=document.createElement('td');cell.colSpan=span;cell.dataset.col=cols[index];cell.dataset.row=String(body.childElementCount+1);if(obj.cls)cell.className=obj.cls;
+ let index=0;for(const item of cells){if(index>=cols.length)break;const obj=item&&typeof item==='object'&&!(item instanceof Node)?item:{v:item};const span=Math.max(1,Math.min(cols.length-index,Number(obj.span)||1));const cell=document.createElement('td');cell.colSpan=span;cell.dataset.col=cols[index];cell.dataset.row=String(body.childElementCount+1);if(obj.cls)cell.className=obj.cls;
  const content=obj.v;if(content instanceof Node)cell.append(content);else cell.textContent=text(content);if(obj.title)cell.title=obj.title;
  cell.addEventListener('click',e=>{if(e.target.closest('button'))return;const prev=body.querySelector('.active-cell');if(prev)prev.classList.remove('active-cell');cell.classList.add('active-cell');state.select=cell.dataset.col+cell.dataset.row;value('selected-address',state.select);value('formula-value',cell.textContent)});
  tr.append(cell);index+=span}
- while(index++<11){const blank=document.createElement('td');tr.append(blank)}
+ while(index++<cols.length){const blank=document.createElement('td');tr.append(blank)}
  body.append(tr);return tr;
 }
 function blank(){row([{v:'',span:11}],'blank-row')}
@@ -104,6 +104,8 @@ function render(){
  if(state.sheet==='signals')renderSignals(state.signals);
  else if(state.sheet==='status')renderStatus(status,safe);
  else renderTrades(status,positions,safe,snapshot,items,currency,canAction);
+ // Extend the visible grid into blank worksheet rows, as in a regular spreadsheet.
+ while(body.childElementCount<34)row([],'blank-row');
  value('live',safe&&(state.sheet!=='trades'||snapshot)?'Tayyor':state.error?'Xatolik':'Tekshirilmoqda');
  value('updated',state.checked||'—');
  if(state.error)value('notice',state.error);
@@ -149,6 +151,44 @@ async function requestClose(action,ticket){
  finally{clearTimeout(timer);state.busy=false;render();setTimeout(refresh,700)}
 }
 body.addEventListener('click',event=>{const b=event.target.closest('button[data-action]');if(b&&!b.disabled)requestClose(b.dataset.action,b.dataset.ticket||'')});
+// Zoom is presentation-only and never changes broker values or trade requests.
+const workbook=document.querySelector('.workbook');
+const worksheet=byId('worksheet'),scroller=byId('sheet-scroller');
+const zoomControl={level:100,fit:false};
+function setZoom(raw,{keepFit=false}={}){
+ const num=Number(raw);const level=Number.isFinite(num)?Math.min(125,Math.max(55,Math.round(num/5)*5)):100;
+ zoomControl.level=level;
+ worksheet.style.zoom=level+'%';
+ byId('zoom-slider').value=String(level);
+ byId('zoom-slider').setAttribute('aria-valuetext',level+' foiz');
+ value('zoom-label',level+'%');
+ if(!keepFit){zoomControl.fit=false;workbook.classList.remove('compact-mode');byId('fit-toggle').setAttribute('aria-pressed','false')}
+}
+function fitWorksheet(){
+ // Fit only populated A–K columns, not the empty right-hand spreadsheet canvas.
+ const headings=worksheet.querySelectorAll('thead th');
+ const left=headings[0],right=headings[11];
+ if(!left||!right)return;
+ const ratio=zoomControl.level/100;
+ const measured=(right.getBoundingClientRect().right-left.getBoundingClientRect().left)/ratio;
+ const viewport=Math.max(180,scroller.clientWidth-8);
+ const fitted=measured>0?Math.floor(viewport/measured*100/5)*5:100;
+ zoomControl.fit=true;
+ workbook.classList.add('compact-mode');
+ byId('fit-toggle').setAttribute('aria-pressed','true');
+ setZoom(Math.max(55,Math.min(100,fitted)),{keepFit:true});
+ scroller.scrollLeft=0;
+}
+byId('fit-toggle').addEventListener('click',()=>{
+ if(zoomControl.fit){setZoom(100);return}
+ fitWorksheet()
+});
+byId('zoom-out').addEventListener('click',()=>setZoom(zoomControl.level-5));
+byId('zoom-in').addEventListener('click',()=>setZoom(zoomControl.level+5));
+byId('zoom-label').addEventListener('click',()=>setZoom(100));
+byId('zoom-slider').addEventListener('input',e=>setZoom(Number(e.target.value)));
+window.addEventListener('resize',()=>{if(zoomControl.fit)fitWorksheet()});
+
 document.querySelectorAll('button[data-sheet]').forEach(b=>{b.tabIndex=b.dataset.sheet==='trades'?0:-1;b.addEventListener('click',()=>switchSheet(b.dataset.sheet));b.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;const tabs=[...document.querySelectorAll('button[data-sheet]')];const next=tabs[(tabs.indexOf(b)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];switchSheet(next.dataset.sheet);next.focus();e.preventDefault()})});
 if(tg){tg.ready();tg.expand()}
 if(!allowedApi){state.error='HTTPS API manzili noto‘g‘ri';render();return}
