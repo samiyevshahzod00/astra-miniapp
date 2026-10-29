@@ -1,0 +1,46 @@
+name: Excel-style worksheet UI safety and no-invented-data checks
+on:
+  push:
+    branches: [feat/worksheet-excel-simple-20261029]
+    paths: [index.html,style.css,app.js,config.js,.github/workflows/worksheet-ui-check.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Parse UI, validate spreadsheet structure and security
+        run: |
+          node --check app.js
+          node --check config.js
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          html=Path('index.html').read_text(encoding='utf-8')
+          css=Path('style.css').read_text(encoding='utf-8')
+          js=Path('app.js').read_text(encoding='utf-8')
+          class Check(HTMLParser):
+              def __init__(self):super().__init__();self.tags=[];self.ids=[]
+              def handle_starttag(self,tag,attrs):
+                  self.tags.append(tag);self.ids.extend(v for k,v in attrs if k=='id')
+          parser=Check();parser.feed(html)
+          assert len(parser.ids)==len(set(parser.ids)),'duplicate UI ids'
+          assert all(x in parser.ids for x in ['sheet-body','selected-address','formula-value','notice','updated','live'])
+          assert 'worksheet' in html and 'formula' in html and 'Hisobot.xlsx' in html
+          assert all(letter in html for letter in ['<th>A</th>','<th>B</th>','<th>C</th>','<th>K</th>'])
+          assert 'color-scheme" content="light"' in html
+          assert 'position:sticky' in css and '--line:#d7dce2' in css
+          assert 'background:#fff' in css and '.worksheet th.rownum' in css
+          assert 'card' not in html and 'metric' not in html and 'tab-signals' not in html
+          assert all(x in js for x in ['api/positions','api/signals','api/close-request','MT5_DEMO_POSITIONS_GET','REAL_LAST_SCAN_BY_INSTRUMENT','floating_profit','winner_count','loser_count','signalChart','requestClose'])
+          assert 'showConfirm' not in js and 'window.confirm' not in js,'browser confirmation not removed'
+          assert 'trade_executed!==false' in js,'client must not claim broker close on Telegram queued reply'
+          assert 'innerHTML' not in js,'untrusted broker content must use textContent'
+          assert 'credentials:\'omit\'' in js and 'X-Telegram-Init-Data' in js
+          assert all(x not in (html+css+js+Path('config.js').read_text()).lower() for x in ['telegram_token','expected_login','expected_server'])
+          print('EXCEL_SHEET_UI_STRUCTURE_AND_OWNER_SAFETY_PASS')
+          PY
