@@ -63,21 +63,24 @@ function renderSignals(signals){
  const signalOK=signals&&signals.read_only===true&&signals.chart_kind==='REAL_LAST_SCAN_BY_INSTRUMENT'&&Array.isArray(signals.rows);
  row([{v:'SIGNALLAR / OXIRGI HAQIQIY SKAN',span:11,cls:'sheet-title'}]);
  row(['Ma’lumot manbai','Bot skaneri','Yangilangan',signalOK?signals.observed_utc||'—':'#N/A',{v:'',span:7}]);
- blank();row(['Instrument','TF','BUY / SELL','Skan sababi','UTC vaqti','Grafik holat',{v:'',span:5}],'header-row');
+ blank();row(['Instrument','TF','BUY / SELL','Skan sababi','UTC vaqti','Manba','Grafik holat',{v:'',span:4}],'header-row');
  if(signalOK&&signals.rows.length){
-  for(const p of signals.rows.slice(0,80)){
+  for(const p of signals.rows){
    const side=p.side==='BUY'?'BUY':p.side==='SELL'?'SELL':'NONE';
    row([{v:p.symbol},{v:p.timeframe},{v:side==='NONE'?'—':side},
-    {v:p.reason,title:p.reason},{v:p.observed_utc||'—'},{v:visual(side),span:6}],'sheet-data-row');
+    {v:p.reason,title:p.reason},{v:p.observed_utc||'—'},
+    {v:p.source==='H1_MODEL'?'H1 model':p.source==='M30_MODEL'?'M30 model':p.source==='LATEST_SCAN'?'Oxirgi scan':'#N/A'},
+    {v:visual(side),span:5}],'sheet-data-row');
   }
  }else row([{v:signalOK?'Skan ma’lumotlari yo‘q':'#N/A — skan holati tasdiqlanmadi',span:11,cls:'note-cell'}]);
  blank();row([{v:'SIGNAL HOLATI TAQSIMOTI',span:11}],'header-row');
  if(signalOK)row([{v:signalChart(signals.rows),span:11,cls:'chart-cell'}]);
  else row([{v:'#N/A',span:11,cls:'note-cell'}]);
- row([{v:'Grafik botning real skan holatlarini ko‘rsatadi. Shamlar yoki taxminiy narxlar qo‘shilmagan.',span:11,cls:'note-cell'}]);
+ row([{v:'H1/M30 alohida kuzatiladi; legacy uchun faqat oxirgi scan mavjud. BUY/SELL muddat tugashi bilan yashiriladi. Sun’iy narxlar yo‘q.',span:11,cls:'note-cell'}]);
 }
 function renderStatus(status,safe){
  row([{v:'BOT HOLATI / STRATEGIYALAR',span:11,cls:'sheet-title'}]);
+ if(!safe){row([{v:'#N/A — bot holati eskirgan yoki tekshirilmagan. Eski ON/OFF qiymatlar ko‘rsatilmaydi.',span:11,cls:'note-cell'}]);return;}
  row(['Hisob','DEMO','Yangilangan',state.checked||'—','Ma’lumot manbai','Bot statusi',{v:'',span:5}]);
  blank();
  const par=status?.parallel||{},settings=[
@@ -130,7 +133,7 @@ async function refresh(){
   state.positions=result[1].status==='fulfilled'?result[1].value:null;
   state.signals=result[2].status==='fulfilled'?result[2].value:null;
   state.checked=new Date().toLocaleTimeString('uz-UZ');
-  state.error=(!state.status?'Telegram sessiyasi yoki bot statusi tasdiqlanmadi. ':(!goodBroker(state.positions)?'MT5 pozitsiyalari tasdiqlanmadi. ':''))||null;
+  state.error=(!isDemo(state.status)?'Telegram yoki bot statusi eskirgan / tasdiqlanmagan. ':(!goodBroker(state.positions)?'MT5 pozitsiyalari tasdiqlanmadi. ':(!(state.signals&&state.signals.read_only===true&&state.signals.chart_kind==='REAL_LAST_SCAN_BY_INSTRUMENT')?'Signallar tekshirilmagan. ':'')))||null;
   if(!state.error)value('notice','Jadval broker ma’lumotlaridan yangilandi. Yopish so‘rovlari Telegram botda tasdiqlanadi.');
  }catch{state.error='Ulanish tekshirilmadi';state.status=null;state.positions=null;state.signals=null}
  finally{state.loading=false;render()}
