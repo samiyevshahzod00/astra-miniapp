@@ -1,22 +1,81 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light"><meta name="referrer" content="no-referrer">
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://telegram.org; style-src 'self'; connect-src https:; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Hisobot.xlsx</title><link rel="stylesheet" href="./style.css">
-<script src="https://telegram.org/js/telegram-web-app.js"></script><script defer src="./config.js"></script><script defer src="./app.js"></script></head>
-<body>
-<div class="workbook" aria-label="Astra DEMO savdo jadvali">
-  <header class="titlebar"><span class="fileicon" aria-hidden="true">X</span><span class="filename">Hisobot.xlsx</span><span class="saved">✓ Saqlangan</span><span class="fill"></span><span class="windowhint">▣</span></header>
-  <nav class="menubar" aria-label="Elektron jadval menyusi"><span class="selected">Bosh sahifa</span><span>Kiritish</span><span>Formulalar</span><span>Maʼlumotlar</span><span>Koʻrinish</span></nav>
-  <div class="ribbon" aria-hidden="true"><div class="ribbon-set"><b>Calibri</b><small>11</small></div><div class="ribbon-set"><span class="boldchar">B</span><i>I</i><u>U</u><span class="separator"></span><span>A<span class="underline-green">▁</span></span></div><div class="ribbon-set"><span>≡</span><span>☰</span><span>▤</span><span class="separator"></span><span>∑</span><span>0.00</span><span>%</span></div><div class="ribbon-set ribbon-right"><span>▥ Jadval</span><span>⌕</span></div></div>
-  <div class="formula"><span class="namebox" id="selected-address">A1</span><span class="fx">fx</span><span id="formula-value" class="formula-value">Hisobot.xlsx</span></div>
-  <div class="sheet-scroller" tabindex="0" role="region" aria-label="Tanlangan Excel varag‘i, chap-o‘ngga surish mumkin">
-    <table class="worksheet" aria-label="Excel uslubidagi jonli broker jadvali">
-      <colgroup><col class="col-row"><col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d"><col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h"><col class="col-i"><col class="col-j"><col class="col-k"></colgroup>
-      <thead><tr><th class="corner" scope="col"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th></tr></thead>
-      <tbody id="sheet-body" role="rowgroup"><tr><th class="rownum">1</th><td colspan="11">Telegram ma’lumotlari tekshirilmoqda…</td></tr></tbody>
-    </table>
-  </div>
-  <footer class="workbook-footer"><span class="navicons" aria-hidden="true">‹ &nbsp; ›</span><div class="sheet-tabs" role="tablist" aria-label="Excel varaqlari"><button type="button" class="sheet-tab active" role="tab" id="tab-trades" data-sheet="trades" aria-selected="true">Bitimlar</button><button type="button" class="sheet-tab" role="tab" id="tab-signals" data-sheet="signals" aria-selected="false">Signallar</button><button type="button" class="sheet-tab" role="tab" id="tab-status" data-sheet="status" aria-selected="false">Bot holati</button></div><span class="fill"></span><span class="rightstat" id="live">Tekshirilmoqda</span><span class="zoom">100%</span></footer>
-  <div class="messagebar"><span id="notice" role="status" aria-live="polite">Telegram sessiyasi va broker ma’lumotlari tekshirilmoqda…</span><span id="updated">—</span></div>
+<title>Hisobot.xlsx</title><link rel="stylesheet" href="./style.css"><script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script defer src="./config.js"></script><script defer src="./app.js"></script></head>
+<body><div class="workbook" aria-label="Excel uslubidagi Astra DEMO savdo jadvali">
+<header class="titlebar">
+  <span class="fileicon" aria-hidden="true">X</span>
+  <span class="quick-icons" aria-hidden="true">↶ &nbsp; ↷ &nbsp; ▾</span>
+  <span class="window-title">Hisobot.xlsx — Excel</span>
+  <span class="mock-search" aria-hidden="true">⌕ &nbsp; Поиск</span>
+  <span class="window-corner" aria-hidden="true">– &nbsp; □ &nbsp; ×</span>
+</header>
+<nav class="menubar" aria-label="Excel uslubidagi yuqori menyu">
+ <span>Файл</span><span class="selected">Главная</span><span>Вставка</span><span>Разметка страницы</span>
+ <span>Формулы</span><span>Данные</span><span>Рецензирование</span><span>Вид</span><span>Справка</span>
+ <button class="fit-button" id="fit-toggle" type="button" aria-pressed="false" title="Kichik ekranga moslash va yuqori lentani ixchamlashtirish">⛶ Moslash</button>
+</nav>
+<div class="ribbon" aria-label="Excel uslubidagi asboblar paneli">
+ <div class="ribbon-group clipboard">
+   <div class="ribbon-contents">
+    <span class="paste-icon" aria-hidden="true">▤</span>
+    <div class="stacked"><span>Вставить</span><span>✂ &nbsp; Вырезать</span><span>▣ &nbsp; Копировать</span></div>
+   </div><small>Буфер обмена</small>
+ </div>
+ <div class="ribbon-group font-tools">
+   <div class="ribbon-contents ribbon-col">
+    <div class="control-line"><span class="fontbox">Calibri <span>⌄</span></span><span class="fontsize">11 ⌄</span><span>Aᐱ</span><span>Aᐯ</span></div>
+    <div class="control-line"><b>Ж</b><i>К</i><u>Ч</u><span>▦</span><span>🖉</span><span>A̲</span></div>
+   </div><small>Шрифт</small>
+ </div>
+ <div class="ribbon-group alignment">
+   <div class="ribbon-contents ribbon-col">
+    <div class="control-line"><span>☰</span><span>≡</span><span>≣</span><span>↗</span><span>↩ Переносить текст</span></div>
+    <div class="control-line"><span>≡</span><span>☷</span><span>⇤</span><span>⇥</span><span>▣ Объединить и поместить в центре</span></div>
+   </div><small>Выравнивание</small>
+ </div>
+ <div class="ribbon-group numbers">
+   <div class="ribbon-contents ribbon-col">
+    <span class="formatbox">Общий <span>⌄</span></span>
+    <div class="control-line"><span>▥</span><span>%</span><span>0,00</span><span>⇠,0</span><span>⇢,0</span></div>
+   </div><small>Число</small>
+ </div>
+ <div class="ribbon-group style-tools">
+   <div class="ribbon-contents"><div class="mini-tool"><span>▦</span>Условное<br>форматирование</div><div class="mini-tool"><span>▤</span>Форматировать<br>как таблицу</div></div>
+   <small>Стили</small>
+ </div>
+ <div class="ribbon-group cells-tools">
+   <div class="ribbon-contents"><div class="mini-tool"><span>⊞</span>Вставить</div><div class="mini-tool"><span>⊠</span>Удалить</div><div class="mini-tool"><span>▣</span>Формат</div></div>
+   <small>Ячейки</small>
+ </div>
+ <div class="ribbon-group editing-tools">
+   <div class="ribbon-contents ribbon-col"><span>∑ Автосумма</span><span>▣ Заполнить</span><span>⌕ Найти</span></div>
+   <small>Редактирование</small>
+ </div>
 </div>
-</body></html>
+<div class="formula"><span class="namebox" id="selected-address">A1</span><span class="formula-symbols" aria-hidden="true">✕ &nbsp; ✓ &nbsp; <i>ƒx</i></span><span id="formula-value" class="formula-value">Hisobot.xlsx</span></div>
+<div class="sheet-scroller" id="sheet-scroller" tabindex="0" role="region" aria-label="Tanlangan Excel varag‘i. Jadvalni yon tomonga surish yoki masshtabni o‘zgartirish mumkin">
+<table class="worksheet" id="worksheet" aria-label="Haqiqiy DEMO broker jadvali">
+<colgroup><col class="col-row"><col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d"><col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h"><col class="col-i"><col class="col-j"><col class="col-k"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"><col class="col-extra"></colgroup>
+<thead><tr><th class="corner" scope="col"></th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th><th scope="col">E</th><th scope="col">F</th><th scope="col">G</th><th scope="col">H</th><th scope="col">I</th><th scope="col">J</th><th scope="col">K</th><th scope="col">L</th><th scope="col">M</th><th scope="col">N</th><th scope="col">O</th><th scope="col">P</th><th scope="col">Q</th><th scope="col">R</th><th scope="col">S</th><th scope="col">T</th></tr></thead>
+<tbody id="sheet-body" role="rowgroup"><tr><th class="rownum">1</th><td colspan="20">Telegram ma’lumotlari tekshirilmoqda…</td></tr></tbody></table>
+</div>
+<footer class="workbook-footer">
+ <span class="navicons" aria-hidden="true">‹ &nbsp; ›</span>
+ <div class="sheet-tabs" role="tablist" aria-label="Excel varaqlari">
+ <button type="button" class="sheet-tab active" role="tab" id="tab-trades" data-sheet="trades" aria-selected="true">Bitimlar</button>
+ <button type="button" class="sheet-tab" role="tab" id="tab-signals" data-sheet="signals" aria-selected="false">Signallar</button>
+ <button type="button" class="sheet-tab" role="tab" id="tab-status" data-sheet="status" aria-selected="false">Bot holati</button>
+ </div>
+ <span class="fill"></span>
+ <div class="zoom-controls" role="group" aria-label="Elektron jadval masshtabi">
+   <button id="zoom-out" type="button" aria-label="Kichraytirish" title="Kichraytirish">−</button>
+   <input id="zoom-slider" type="range" min="55" max="125" step="5" value="100" aria-label="Masshtab foizi">
+   <button id="zoom-in" type="button" aria-label="Kattalashtirish" title="Kattalashtirish">+</button>
+   <button id="zoom-label" type="button" title="100 foizga qaytarish" aria-label="Masshtabni 100 foizga qaytarish">100%</button>
+ </div>
+</footer>
+<div class="messagebar"><span id="notice" role="status" aria-live="polite">Telegram sessiyasi va broker ma’lumotlari tekshirilmoqda…</span><span id="updated">—</span><span id="live">Tekshirilmoqda</span></div>
+</div></body></html>
