@@ -52,7 +52,7 @@ jobs:
           const state={busy:false,status:{read_only:true,mode:'DEMO',stale:false},
             positions:{rows:[{ticket:'123',profit:5}],read_only:true,source:'MT5_DEMO_POSITIONS_GET',
                        count:1,observed_utc:new Date().toISOString()}};
-          const sandbox={state,isDemo:d=>true,goodBroker:p=>true,render(){},
+          const sandbox={state,isDemo:d=>true,goodBroker:p=>true,render(){},refresh(){return Promise.resolve()},
             api:'https://example.com/',tg:{initData:'synthetic',close(){closed++}},
             fetch:async()=>{fetches++;return {status:responseStatus,ok:responseStatus===202,
               json:async()=>responseStatus===202?{queued_for_owner:true,trade_executed:false}
