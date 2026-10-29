@@ -1,0 +1,33 @@
+name: Signal expiry route completeness and stale UX static regression
+on:
+  push:
+    branches: [fix/astra-signal-route-completeness-stale-20261029]
+    paths: ['app.js','.github/workflows/astra-signal-route-regression.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify no truncation, distinct sources, stale account hiding, owner guard
+        shell: bash
+        run: |
+          node --check app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('app.js').read_text(encoding='utf-8')
+          assert 'for(const p of signals.rows){' in s
+          assert 'signals.rows.slice(0,80)' not in s and 'rows.slice(0,32)' not in s
+          assert all(x in s for x in ['H1_MODEL','M30_MODEL','LATEST_SCAN','function renderSignals(','p.source','signalChart(signals.rows)'])
+          assert "if(!safe){row(" in s
+          assert "Eski ON/OFF qiymatlar" in s
+          assert "!goodBroker(state.positions)" in s
+          assert "state.signals.read_only===true" in s
+          assert "trade_executed!==false" in s and "X-Telegram-Init-Data" in s
+          assert "innerHTML" not in s
+          print('ASTRA_SIGNAL_DISTINCT_ROWS_STALE_UI_PASS')
+          PY
