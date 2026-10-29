@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),tg=window.Telegram?.WebApp,conf=window.ASTRA_PUBLIC_CONFIG||{},api=String(conf.apiBase||'');
 const allowedApi=(()=>{try{const u=new URL(api);return u.protocol==='https:'&&!u.username&&!u.password&&!u.search&&!u.hash&&!u.port&&(u.pathname==='/'||u.pathname==='')}catch{return false}})();
-const cols='ABCDEFGHIJKLMNOPQRST',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades'};
+const cols='ABCDEFGHIJKLMNOPQRST',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades',actionNotice:null,actionNoticeUntil:0};
 function value(id,v){const t=byId(id);if(t)t.textContent=String(v??'—')}
 function money(v,c='USD'){return Number.isFinite(v)?(v>=0?'+':'')+v.toFixed(2)+' '+c:'#N/A'}
 function dec(v,n=5){if(!Number.isFinite(v))return '#N/A';return Number(v).toFixed(n).replace(/0+$/,'').replace(/\.$/,'')}
@@ -108,7 +108,8 @@ function render(){
  while(body.childElementCount<34)row([],'blank-row');
  value('live',safe&&(state.sheet!=='trades'||snapshot)?'Tayyor':state.error?'Xatolik':'Tekshirilmoqda');
  value('updated',state.checked||'—');
- if(state.error)value('notice',state.error);
+ if(state.actionNotice&&Date.now()<state.actionNoticeUntil)value('notice',state.actionNotice);
+ else if(state.error)value('notice',state.error);
 }
 function switchSheet(sheet){
  if(!['trades','signals','status'].includes(sheet)||sheet===state.sheet)return;
@@ -135,20 +136,72 @@ async function refresh(){
  finally{state.loading=false;render()}
 }
 async function requestClose(action,ticket){
- if(state.busy||!isDemo(state.status)||!goodBroker(state.positions))return;
- if(action==='one'&&!state.positions.rows.some(p=>String(p.ticket)===String(ticket)))return;
- state.busy=true;render();const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),12000);
+ if(state.busy||!isDemo(state.status)||!goodBroker(state.positions)){
+  state.actionNotice='Broker holati eskirgan. Avval jadvalni yangilang yoki Telegram Mini App’ni qayta oching.';
+  state.actionNoticeUntil=Date.now()+30000;render();return;
+ }
+ if(action==='one'&&!state.positions.rows.some(p=>String(p.ticket)===String(ticket))){
+  state.actionNotice='Tanlangan ticket endi broker ro‘yxatida yo‘q. Jadvalni yangilang.';
+  state.actionNoticeUntil=Date.now()+30000;render();return;
+ }
+ state.busy=true;render();
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),20000);
+ let sent=false;
  try{
-  // One tap in the worksheet, no extra browser modal. Server still uses the
-  // existing broker-owner Telegram two-step close confirmation; do NOT claim execution.
-  const res=await fetch(new URL('api/close-request',api).href,{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':tg.initData},credentials:'omit',redirect:'error',cache:'no-store',signal:abort.signal,body:JSON.stringify({action,ticket:ticket||''})});
-  if(res.status===429)throw Error('10 soniya kuting');
-  if(!res.ok)throw Error('Yopish so‘rovi rad etildi ('+res.status+')');
-  const out=await res.json();
-  if(out.trade_executed!==false||out.queued_for_owner!==true)throw Error('Broker yopilganini tasdiqlamagan');
-  state.error='So‘rov Telegram botga yuborildi. Bitim HOZIRCHA yopilmadi: Telegramdagi yakuniy tasdiq zarur.';
- }catch(e){state.error='Yopish bajarilmadi: '+String(e.message||'aloqa xatosi')}
- finally{clearTimeout(timer);state.busy=false;render();setTimeout(refresh,700)}
+  const res=await fetch(new URL('api/close-request',api).href,{
+   method:'POST',
+   headers:{'Content-Type':'application/json','X-Telegram-Init-Data':tg.initData},
+   credentials:'omit',redirect:'error',cache:'no-store',signal:abort.signal,
+   body:JSON.stringify({action,ticket:ticket||''})
+  });
+  let payload={};
+  try{payload=await res.json()}catch{}
+  const error=typeof payload?.error==='string'?payload.error:'';
+  if(!res.ok){
+   const descriptions={
+    'TELEGRAM_SESSION_EXPIRED_REOPEN':'Telegram sessiyasi eskirgan. «Hisobot» oynasini to‘liq yoping va qayta oching.',
+    'INVALID_OR_EXPIRED_REQUEST':'Telegram sessiyasi eskirgan yoki so‘rov xato. Mini App’ni qayta oching.',
+    'POSITION_CHANGED_OR_CLOSED':'Bu bitim allaqachon yopilgan yoki ticket o‘zgargan. Pozitsiyalar yangilanmoqda.',
+    'NO_PROFIT_POSITIONS':'Hozir foydadagi ochiq bitim qolmagan.',
+    'NO_LOSS_POSITIONS':'Hozir zarardagi ochiq bitim qolmagan.',
+    'NO_OPEN_POSITIONS':'Hozir ochiq bitim qolmagan.',
+    'INVALID_CLOSE_SELECTION':'Noto‘g‘ri yoki eskirgan bitim tanlangan. Jadvalni yangilang.',
+    'MT5_POSITIONS_NOT_VERIFIED_RETRY':'MT5 broker ma’lumotlari tasdiqlanmadi. Birozdan keyin qayta tekshiring.',
+    'TELEGRAM_DELIVERY_FAILED_RETRY':'Telegram tasdiq xabarini olgani tasdiqlanmadi. Takrorlashdan oldin Telegram chatni tekshiring.',
+    'RATE_LIMITED':'So‘rovlar orasida kamida 10 soniya kuting.'
+   };
+   const fallback={
+    400:'So‘rov noto‘g‘ri. Mini App’ni qayta oching.',
+    401:'Telegram sessiyasi eskirgan. Hisobotni qayta oching.',
+    403:'Telegram egasi yoki sayt ruxsati tasdiqlanmadi.',
+    409:'Bitim brokerda o‘zgargan. Jadvalni yangilang.',
+    422:'Bitim tanlovi noto‘g‘ri.',
+    429:'10 soniya kuting.',
+    502:'Telegram tasdiq xabari yetkazilmagani ehtimoli bor. Chatni tekshiring.',
+    503:'MT5 yoki Telegram vaqtincha tayyor emas.'
+   };
+   throw Error(descriptions[error]||fallback[res.status]||('So‘rov rad etildi: HTTP '+res.status));
+  }
+  if(payload.queued_for_owner!==true||payload.trade_executed!==false)
+   throw Error('Telegram tasdiq xabarini yuborish tekshirilmadi. Bitim yopildi deb hisoblanmaydi.');
+  sent=true;
+  state.actionNotice='Telegram botga yopish so‘rovi yuborildi. Bitim hali YOPILMADI. Telegram chatida yakuniy tasdiq zarur.';
+  state.actionNoticeUntil=Date.now()+60000;
+ }catch(error){
+  const message=error?.name==='AbortError'
+   ?'Telegram javobi kechikdi. Xabar bor-yo‘qligini Telegram chatdan tekshiring, so‘rovni ketma-ket takrorlamang.'
+   :String(error?.message||'Aloqa xatosi');
+  state.actionNotice='Yopish so‘rovi bajarilmadi: '+message;
+  state.actionNoticeUntil=Date.now()+60000;
+ }finally{
+  clearTimeout(timer);state.busy=false;render();
+  if(!sent)setTimeout(refresh,400);
+ }
+ if(sent&&typeof tg?.close==='function'){
+  // Bot's official confirmation message was created; return to that Telegram chat.
+  // This does NOT claim the broker has closed any trade.
+  setTimeout(()=>tg.close(),1000);
+ }
 }
 body.addEventListener('click',event=>{const b=event.target.closest('button[data-action]');if(b&&!b.disabled)requestClose(b.dataset.action,b.dataset.ticket||'')});
 // Zoom is presentation-only and never changes broker values or trade requests.

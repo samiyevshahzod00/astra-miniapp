@@ -1,0 +1,72 @@
+name: Astra close error feedback and Telegram-return UX
+on:
+  push:
+    branches: [fix/astra-close-ux-20261029]
+    paths: [app.js,index.html,style.css,config.js,.github/workflows/close-error-ui-check.yml]
+permissions:
+  contents: read
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: JavaScript syntax and close error diagnostics static audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check config.js
+          python3 - <<'PY'
+          from pathlib import Path
+          app=Path('app.js').read_text(encoding='utf-8')
+          html=Path('index.html').read_text(encoding='utf-8')
+          assert 'trade_executed!==false' in app
+          assert 'X-Telegram-Init-Data' in app
+          assert 'api/close-request' in app
+          assert 'TELEGRAM_SESSION_EXPIRED_REOPEN' in app
+          assert 'POSITION_CHANGED_OR_CLOSED' in app
+          assert 'MT5_POSITIONS_NOT_VERIFIED_RETRY' in app
+          assert 'TELEGRAM_DELIVERY_FAILED_RETRY' in app
+          assert 'RATE_LIMITED' in app
+          assert 'state.actionNoticeUntil=Date.now()+60000' in app
+          assert 'if(sent&&typeof tg?.close' in app
+          assert 'showConfirm' not in app and 'window.confirm' not in app
+          assert 'innerHTML' not in app
+          assert 'data-sheet="trades"' in html
+          print('ASTRA_CLOSE_UX_SECURITY_STATIC_PASS')
+          PY
+      - name: Run rendered close request simulation without external network
+        shell: bash
+        run: |
+          node <<'JS'
+          const fs=require('fs'),vm=require('vm');
+          const src=fs.readFileSync('app.js','utf8');
+          const a=src.indexOf('async function requestClose(action,ticket){');
+          const b=src.indexOf('\nbody.addEventListener(',a);
+          if(a<0||b<=a)throw Error('close function not found');
+          const code=src.slice(a,b);
+          let responseStatus=409,notice='',closed=0,fetches=0;
+          const state={busy:false,status:{read_only:true,mode:'DEMO',stale:false},
+            positions:{rows:[{ticket:'123',profit:5}],read_only:true,source:'MT5_DEMO_POSITIONS_GET',
+                       count:1,observed_utc:new Date().toISOString()}};
+          const sandbox={state,isDemo:d=>true,goodBroker:p=>true,render(){},refresh(){return Promise.resolve()},
+            api:'https://example.com/',tg:{initData:'synthetic',close(){closed++}},
+            fetch:async()=>{fetches++;return {status:responseStatus,ok:responseStatus===202,
+              json:async()=>responseStatus===202?{queued_for_owner:true,trade_executed:false}
+                                                 :{error:'POSITION_CHANGED_OR_CLOSED'}}},
+            URL,AbortController,setTimeout(fn){if(fn.name!=='')return 1;return 1},
+            clearTimeout(){},Date,JSON,String,Error};
+          vm.runInNewContext(code,sandbox);
+          (async()=>{
+            await sandbox.requestClose('one','123');
+            if(!state.actionNotice.includes('ticket')&&!state.actionNotice.includes('bitim'))throw Error('stale ticket missing');
+            if(closed!==0)throw Error('closed app on failure');
+            responseStatus=202;await sandbox.requestClose('one','123');
+            if(!state.actionNotice.includes('hali YOPILMADI'))throw Error('incorrect closed trade claim');
+            if(fetches!==2)throw Error('unexpected request count '+fetches);
+            console.log('ASTRA_CLOSE_USER_FEEDBACK_INTERACTION_PASS')
+          })().catch(e=>{console.error(e);process.exitCode=1})
+          JS
