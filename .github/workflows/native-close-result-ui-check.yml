@@ -1,0 +1,32 @@
+name: Astra native bot vs Telegram close result UI safety
+on:
+  push:
+    branches: [feat/astra-native-close-result-aware-ui-20261029]
+    paths: ['app.js','.github/workflows/native-close-result-ui-check.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: JS and native-vs-confirmation distinctions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("app.js").read_text(encoding="utf-8")
+          assert "payload.queued_for_bot===true" in s and "payload.queued_for_owner===true" in s
+          assert "needTelegram&&typeof tg?.close" in s
+          assert "trade_executed!==false" in s
+          assert "NATIVE_CLOSE_BRIDGE_NOT_READY" in s
+          assert "api/positions" in s and "api/close-request" in s
+          assert "innerHTML" not in s
+          assert "X-Telegram-Init-Data" in s
+          print("ASTRA_NATIVE_VS_TELEGRAM_NO_FALSE_BROKER_CLOSURE_PASS")
+          PY
