@@ -41,7 +41,7 @@ jobs:
           text='\n'.join(Path(f).read_text(encoding='utf-8') for f in files)
           for forbidden in ('telegram_token', 'telegram_chat_id', 'BEGIN PRIVATE KEY', 'ghp_', 'C:\\agg_bot'):
               assert forbidden not in text, forbidden
-          assert 'apiBase: ""' in Path('config.js').read_text(encoding='utf-8')
+          assert 'apiBase: "https://vmi3516937.tail2466bb.ts.net"' in Path('config.js').read_text(encoding='utf-8')
           print('PUBLIC_STATIC_ONLY_SECRETS_CHECK_PASS')
           PY
           mkdir -p public
