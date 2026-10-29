@@ -1,0 +1,55 @@
+name: Three Excel worksheet tabs and neutral palette validation
+on:
+  push:
+    branches: [feat/worksheet-three-tabs-muted-20261029]
+    paths: [index.html,style.css,app.js,config.js,.github/workflows/worksheet-tabs-check.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify JavaScript, sheet isolation and restrained colours
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check config.js
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          html=Path('index.html').read_text(encoding='utf-8')
+          js=Path('app.js').read_text(encoding='utf-8')
+          css=Path('style.css').read_text(encoding='utf-8')
+          class Parser(HTMLParser):
+              def __init__(self):super().__init__();self.ids=[];self.tabs=[]
+              def handle_starttag(self,name,attrs):
+                  d=dict(attrs)
+                  if 'id' in d:self.ids.append(d['id'])
+                  if d.get('data-sheet'):self.tabs.append((d.get('data-sheet'),d.get('role')))
+          parser=Parser();parser.feed(html)
+          assert len(parser.ids)==len(set(parser.ids)), 'duplicate DOM id'
+          assert parser.tabs==[('trades','tab'),('signals','tab'),('status','tab')],parser.tabs
+          assert 'role="tablist"' in html and 'aria-selected="true"' in html
+          assert all(k in js for k in ("function renderTrades(","function renderSignals(","function renderStatus(","function switchSheet("))
+          assert "if(state.sheet==='signals')renderSignals(state.signals)" in js
+          assert "else if(state.sheet==='status')renderStatus(status,safe)" in js
+          a=js.split('function renderTrades(',1)[1].split('function renderSignals(',1)[0]
+          b=js.split('function renderSignals(',1)[1].split('function renderStatus(',1)[0]
+          c=js.split('function renderStatus(',1)[1].split('function render(){',1)[0]
+          assert 'OCHIQ BITIMLAR' in a and 'SIGNALLAR' not in a and 'BOT HOLATI' not in a
+          assert 'SIGNALLAR / OXIRGI' in b and 'signalChart(' in b and 'BOT HOLATI' not in b
+          assert 'BOT HOLATI / STRATEGIYALAR' in c and 'Risk / bloklar'.lower() not in a.lower()
+          assert "data-sheet" in js and "aria-selected" in js and "ArrowRight" in js
+          assert all(x in js for x in ['api/positions','api/signals','api/close-request','MT5_DEMO_POSITIONS_GET'])
+          assert 'trade_executed!==false' in js and 'X-Telegram-Init-Data' in js
+          assert 'innerHTML' not in js
+          assert '.sheet-tabs .sheet-tab.active' in css
+          assert 'background:#f0f2f1' in css and 'background:#f5f6f6' in css
+          assert '#217346' not in css and '#e8f2eb' not in css and '#d96d76' not in css
+          assert all(secret not in (html+js+css+Path('config.js').read_text()).lower() for secret in ('telegram_token','telegram_chat_id','expected_login','expected_server','begin private key'))
+          print('ASTRA_EXCEL_3_SHEETS_MUTED_PALETTE_AND_OWNER_AUTH_PASS')
+          PY
