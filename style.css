@@ -1,35 +1,119 @@
-:root{color-scheme:light;--excel:#5b7165;--exceldeep:#36483e;--line:#e0e3e4;--gridtext:#252b29;--head:#f5f6f7;--green:#485a50;--neg:#6f565a;--pos:#354a41}
-*{box-sizing:border-box}html,body{margin:0;height:100%;background:#f1f3f3;color:var(--gridtext);font:13px/1.35 Calibri,"Aptos","Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
-.workbook{width:100%;height:100dvh;min-height:450px;display:flex;flex-direction:column;background:white;overflow:hidden}
-.titlebar{height:40px;flex-shrink:0;display:flex;align-items:center;gap:11px;padding:0 14px;background:#f0f2f1;color:#303734;border-bottom:1px solid #d8dcda}.fileicon{font-weight:850;font-size:16px;border:1px solid #4f7160;background:#4f7160;color:#fff;width:22px;height:24px;display:grid;place-items:center;border-radius:2px}.filename{font-size:13px;font-weight:600}.saved{font-size:12px;color:#68756c}.fill{flex:1}.windowhint{font-size:17px}
-.menubar{height:34px;display:flex;align-items:stretch;gap:0;flex-shrink:0;background:#fff;border-bottom:1px solid #e1e2e5;overflow-x:auto;scrollbar-width:none}.menubar span{white-space:nowrap;padding:9px 13px 7px;color:#41484c;font-size:12px}.menubar .selected{border-bottom:3px solid var(--excel);color:#195d39;font-weight:700}
-.ribbon{display:flex;align-items:center;min-height:54px;border-bottom:1px solid #cdd4d9;gap:15px;white-space:nowrap;overflow:hidden;padding:8px 13px;background:#fbfcfc;color:#555;font-size:14px;flex-shrink:0}.ribbon-set{display:flex;gap:13px;align-items:center;border-right:1px solid #e0e4e6;padding-right:15px}.ribbon-set b{font-weight:400;border:1px solid #cbd2d5;padding:4px 8px;min-width:82px;background:white}.ribbon-set small{padding:5px 7px;border:1px solid #cbd2d5;background:white}.ribbon-right{margin-left:auto}.boldchar{font-weight:900}.separator{height:21px;border-right:1px solid #ccc}.underline-green{color:var(--excel)}
-.formula{height:35px;display:flex;align-items:center;gap:0;background:#fff;border-bottom:1px solid #cad4d4;flex-shrink:0;font-size:13px}.namebox{width:84px;min-width:84px;border-right:1px solid #d9dddf;text-align:center;padding:8px 7px;font-weight:500;overflow:hidden}.fx{font:italic bold 15px Georgia,serif;color:#5e7370;padding:0 14px;border-right:1px solid #ddd}.formula-value{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 12px;color:#2d3b35}
-.sheet-scroller{flex:1;overflow:auto;background:#fff;position:relative;overscroll-behavior:contain}
-.worksheet{border-spacing:0;border-collapse:separate;table-layout:fixed;width:max-content;min-width:100%;font-variant-numeric:tabular-nums;font-size:12px}
-.col-row{width:42px}.col-a{width:126px}.col-b{width:152px}.col-c{width:118px}.col-d{width:100px}.col-e{width:118px}.col-f{width:120px}.col-g{width:118px}.col-h{width:118px}.col-i{width:146px}.col-j{width:112px}.col-k{width:188px}
-.worksheet th,.worksheet td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);height:28px;min-height:28px;padding:4px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;text-align:left;background:#fff;font-weight:400}
-.worksheet thead th{position:sticky;top:0;z-index:4;background:#f2f3f3;color:#5e676b;text-align:center;border-bottom:1px solid #aebcbc;height:26px;font-size:12px;padding:2px}.worksheet th.corner{position:sticky;left:0;z-index:6;background:linear-gradient(135deg,transparent 48%,#aebdbb 49%,#aebdbb 52%,transparent 53%) #f2f3f3}
-.worksheet th.rownum{position:sticky;left:0;z-index:3;background:#f3f4f5;color:#657076;text-align:center;font-size:11px;border-right:1px solid #aebdbb;padding:2px 4px}
-.worksheet td.active-cell{outline:2px solid #198653;outline-offset:-2px;position:relative;z-index:1}
-.worksheet tr.section-row td{background:#f5f6f6;font-weight:700;color:#3d4541}.worksheet tr.header-row td{background:#f0f1f1;font-weight:700;border-bottom:1px solid #c5cbca;color:#303735}.worksheet tr.totals-row td{background:#f5f6f6;font-weight:700}.worksheet tr.blank-row td{height:22px;background:#fff}.worksheet tr.alert-row td{background:#fafafa;color:#555d59}.worksheet tr.sheet-data-row:hover td{background:#f8f9f9}
-.worksheet td.numeric{text-align:right;font-family:"Aptos","Segoe UI",Arial,sans-serif}.worksheet td.profit{color:#344a41;font-weight:600}.worksheet td.loss{color:#755258;font-weight:600}.worksheet td.note-cell{color:#6c7579;font-size:11px}.worksheet td.sheet-title{font-size:13px;font-weight:700;color:#39413d;background:#f7f8f8}
-.worksheet td.signal-positive{color:#46544b;font-weight:600}.worksheet td.signal-negative{color:#5c5b59;font-weight:600}.worksheet td.signal-muted{color:#646b70}
-.cellbutton{font:inherit;font-size:12px;border:1px solid #aabeb1;background:#f7f8f8;color:#454d49;padding:3px 10px;min-height:21px;border-radius:1px;cursor:pointer;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cellbutton:hover:not(:disabled){background:#eceeee;border-color:#a7afab}.cellbutton:disabled{opacity:.42;cursor:not-allowed}.cellbutton.danger{color:#555d59;background:#f7f8f8;border-color:#b9c1bd}.cellbutton.danger:hover:not(:disabled){background:#eceeee}.cellbutton:focus-visible{outline:2px solid #176c41;outline-offset:1px}
-.spark{height:13px;border:1px solid #d3dad7;background:#f2f5f3;display:flex;align-items:stretch;position:relative;width:100%}.spark-fill{height:100%;min-width:5px}.spark-fill.buy{background:#929d98}.spark-fill.sell{background:#929d98}.spark-fill.none{background:#929d98}.sparkwrap{width:100%;display:flex;align-items:center;gap:7px}.sparkwrap small{font-size:10px;color:#515f56}
-.chart-cell{padding:8px 15px!important;height:115px!important;background:#fff!important}.chart-cell svg{width:min(600px,100%);height:100px;display:block}
-.workbook-footer{display:flex;align-items:center;gap:12px;height:37px;border-top:1px solid #d9dedb;background:#f9faf9;padding:0 13px;color:#5a6461;flex-shrink:0;font-size:12px}.navicons{font-size:18px;color:#717e76}.sheet-tab{height:100%;display:flex;align-items:center;white-space:nowrap;padding:0 13px;border-bottom:3px solid transparent;border-left:1px solid transparent;border-right:1px solid transparent;color:#606865;background:#f9faf9;font-weight:500}.plus{font-size:17px}.rightstat{color:#2e6341}.zoom{padding:1px 5px;border:1px solid #e4e7e5}
-.messagebar{display:flex;gap:12px;justify-content:space-between;align-items:center;background:#fff;color:#555;font-size:11px;padding:7px 12px;border-top:1px solid #e4e8e5;min-height:31px;flex-shrink:0}.messagebar span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.messagebar span:last-child{white-space:nowrap}
-@media(max-width:520px){.titlebar{height:36px;padding:0 9px}.ribbon{min-height:41px;padding:5px 7px;gap:8px}.ribbon-set{gap:7px;padding-right:9px}.ribbon-right{display:none}.namebox{width:61px;min-width:61px}.formula{height:31px}.menubar{height:31px}.menubar span{padding:7px 10px}.worksheet{font-size:11px}.worksheet th,.worksheet td{height:27px;padding:4px 5px}.col-row{width:34px}.col-a{width:112px}.col-b{width:138px}.col-c{width:106px}.col-k{width:173px}.saved{display:none}.messagebar{font-size:10px}}
+:root{color-scheme:light;--line:#d7d7d7;--head:#242424;--chrome:#202020;--chrome2:#292929;--text:#242424;--green:#257d50;--pos:#405747;--neg:#73575b;--rowh:23px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;color:var(--text);font:12px/1.35 Calibri,"Aptos","Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.workbook{display:flex;flex-direction:column;width:100%;height:100dvh;min-height:320px;background:#fff;overflow:hidden}
+.titlebar{height:35px;min-height:35px;display:flex;align-items:center;gap:14px;background:#121212;color:#ececec;padding:0 12px;white-space:nowrap}
+.fileicon{height:21px;width:21px;display:grid;place-items:center;border-radius:2px;background:#247647;color:#fff;font-weight:900;font-size:15px}
+.quick-icons{font-size:20px;color:#d5d5d5;letter-spacing:.15em}
+.window-title{position:absolute;left:50%;transform:translateX(-50%);font-size:12px;color:#f0f0f0;pointer-events:none}
+.mock-search{display:flex;align-items:center;margin-left:auto;margin-right:52px;background:#343434;color:#cacaca;width:255px;height:24px;padding:0 13px;max-width:20vw}
+.window-corner{font-size:18px;letter-spacing:.6em;color:#c7c7c7}
+.menubar{height:35px;flex:0 0 35px;display:flex;align-items:stretch;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:#272727;color:#d2d2d2;white-space:nowrap;padding:0 6px}
+.menubar>span{padding:9px 13px 8px;font-size:12px;cursor:default}
+.menubar>span.selected{font-weight:700;color:#fff;border-bottom:2px solid #e4e4e4}
+.fit-button{border:1px solid #666;background:#323232;color:#f3f3f3;font:inherit;font-size:11px;white-space:nowrap;margin:5px 8px 5px auto;padding:0 11px;cursor:pointer;border-radius:2px}
+.fit-button:hover,.fit-button[aria-pressed="true"]{background:#505050;border-color:#999}
+.fit-button:focus-visible,.sheet-tab:focus-visible,.zoom-controls button:focus-visible,.zoom-controls input:focus-visible{outline:2px solid #79ba9b;outline-offset:1px}
+.ribbon{height:121px;min-height:121px;display:flex;gap:0;align-items:stretch;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#565656 #282828;background:#292929;color:#e3e3e3;padding:8px 4px 0}
+.ribbon-group{height:110px;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:2px 13px 0;border-right:1px solid #444;flex-shrink:0}
+.ribbon-group>small{height:18px;color:#bdbdbd;text-align:center;font-size:10px}
+.ribbon-contents{display:flex;align-items:center;gap:7px;flex:1;justify-content:center;font-size:11px}
+.ribbon-col{flex-direction:column;align-items:stretch;justify-content:space-evenly}
+.control-line{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:12px}
+.control-line span{white-space:nowrap}
+.clipboard .ribbon-contents{gap:10px}.paste-icon{font-size:33px;color:#dadada;line-height:1}
+.stacked{display:grid;gap:6px;white-space:nowrap;font-size:11px}
+.fontbox,.fontsize,.formatbox{display:flex;justify-content:space-between;align-items:center;border:1px solid #666;background:#353535;padding:4px 6px;color:#fff;height:25px}
+.fontbox{min-width:104px}.fontsize{min-width:40px}.formatbox{width:130px}
+.font-tools b,.font-tools i,.font-tools u{font-size:14px}
+.alignment .control-line{gap:13px}
+.mini-tool{display:flex;flex-direction:column;align-items:center;gap:5px;white-space:nowrap;font-size:10px;text-align:center;line-height:1.3}
+.mini-tool>span{font-size:25px;color:#d0d0d0}
+.numbers .ribbon-contents{align-items:stretch}
+.style-tools .ribbon-contents{gap:18px}
+.cells-tools .ribbon-contents{gap:15px}
+.editing-tools .ribbon-contents{min-width:120px}
+.formula{height:34px;min-height:34px;background:#292929;color:#dfdfdf;display:flex;align-items:stretch;border-top:1px solid #444;border-bottom:1px solid #555}
+.namebox{width:85px;min-width:85px;padding:8px;border-right:1px solid #484848;display:grid;place-items:center;font-size:12px;background:#343434}
+.formula-symbols{padding:7px 13px;color:#bcbcbc;border-right:1px solid #444;white-space:nowrap;font-size:15px}
+.formula-value{flex:1;padding:8px 12px;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet-scroller{flex:1;min-height:100px;position:relative;overflow:auto;overscroll-behavior:contain;background:#fff;background-image:linear-gradient(90deg,transparent calc(100% - 1px),#e1e1e1 calc(100% - 1px)),linear-gradient(transparent calc(100% - 1px),#e1e1e1 calc(100% - 1px));background-size:90px 23px;scrollbar-color:#aaa #eee;scrollbar-width:thin}
+.worksheet{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;font-size:12px;font-variant-numeric:tabular-nums;background:white;zoom:100%}
+.col-row{width:29px}.col-a{width:106px}.col-b{width:145px}.col-c{width:90px}.col-d{width:80px}.col-e{width:96px}.col-f{width:105px}.col-g{width:100px}.col-h{width:100px}.col-i{width:136px}.col-j{width:94px}.col-k{width:168px}.col-extra{width:86px}
+.worksheet th,.worksheet td{height:var(--rowh);min-height:var(--rowh);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:3px 6px;background:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.worksheet thead th{height:22px;padding:1px 2px;position:sticky;top:0;z-index:4;background:#252525;color:#eee;border-bottom:1px solid #666;border-right:1px solid #4b4b4b;text-align:center;font-size:11px}
+.worksheet th.corner{position:sticky;left:0;z-index:6;background:#252525}
+.worksheet th.rownum{position:sticky;left:0;z-index:3;background:#282828;color:#e2e2e2;text-align:center;border-right:1px solid #5c5c5c;padding:1px 3px;font-size:11px}
+.worksheet td.active-cell{outline:2px solid #287c54;outline-offset:-2px;position:relative;z-index:1}
+.worksheet tr.section-row td{background:#f4f4f4;color:#313131;font-weight:700}
+.worksheet tr.header-row td{background:#e2e4e5;font-weight:700;color:#222;border-bottom:1px solid #c2c2c2}
+.worksheet tr.totals-row td{background:#f3f4f3;font-weight:700}
+.worksheet tr.blank-row td{height:var(--rowh);background:white}
+.worksheet tr.alert-row td{background:#fbfbfb;color:#666}
+.worksheet tr.sheet-data-row:hover td{background:#f9faf9}
+.worksheet td.numeric{text-align:right;font-variant-numeric:tabular-nums}
+.worksheet td.profit{color:var(--pos);font-weight:600}
+.worksheet td.loss{color:var(--neg);font-weight:600}
+.worksheet td.note-cell{color:#6c6c6c;font-size:11px}
+.worksheet td.sheet-title{font-size:14px;font-weight:700;color:#303030;background:#fff}
+.worksheet td.signal-positive{color:#475e51;font-weight:600}
+.worksheet td.signal-negative{color:#65545a;font-weight:600}
+.worksheet td.signal-muted{color:#666}
+.cellbutton{font:inherit;font-size:12px;min-height:20px;max-width:100%;padding:2px 9px;border-radius:3px;border:1px solid #c8cbd0;background:#e9eaec;color:#3c434a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cellbutton:hover:not(:disabled){background:#dadddf;border-color:#a3aaad}
+.cellbutton:disabled{opacity:.46;cursor:not-allowed}
+.cellbutton.danger{color:#4e494a;background:#ebedef;border-color:#c1c6c8}
+.cellbutton:focus-visible{outline:2px solid #497b62;outline-offset:1px}
+.sparkwrap{display:flex;align-items:center;gap:7px;width:100%}.sparkwrap small{color:#555;font-size:10px}
+.spark{height:11px;border:1px solid #ced1cf;background:#f3f4f3;flex:1}
+.spark-fill{display:block;height:100%;background:#909a95;min-width:4px}
+.spark-fill.buy,.spark-fill.sell,.spark-fill.none{background:#959d99}
+.chart-cell{height:115px!important;padding:6px 10px!important}.chart-cell svg{height:100px;width:min(600px,100%);display:block}
+.workbook-footer{height:37px;min-height:37px;display:flex;align-items:stretch;gap:4px;padding:0 8px;background:#242424;color:#e8e8e8;overflow:hidden;border-top:1px solid #4c4c4c}
+.fill{flex:1;min-width:0}
+.navicons{padding:10px 3px 0;white-space:nowrap;color:#ccc;font-size:15px;user-select:none}
+.sheet-tabs{display:flex;align-items:stretch;gap:1px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.sheet-tabs .sheet-tab{border:0;border-bottom:3px solid transparent;background:#343434;color:#dedede;font:inherit;font-size:12px;padding:0 16px;white-space:nowrap;cursor:pointer}
+.sheet-tabs .sheet-tab.active{border-bottom-color:#3c9a6b;background:#f6f6f6;color:#1d1d1d;font-weight:700}
+.sheet-tabs .sheet-tab:hover:not(.active){background:#434343}
+.zoom-controls{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.zoom-controls button{border:0;background:transparent;color:#e6e6e6;cursor:pointer;font:inherit;height:30px;min-width:22px;padding:0 4px;font-size:16px}
+.zoom-controls button:hover{background:#484848}
+.zoom-controls #zoom-label{font-size:11px;min-width:42px;text-align:center}
+.zoom-controls input{width:96px;accent-color:#bbb;cursor:pointer}
+.messagebar{height:30px;min-height:30px;display:flex;align-items:center;gap:14px;justify-content:space-between;background:#191919;color:#dadada;padding:3px 10px;font-size:11px}
+.messagebar span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.messagebar #updated{white-space:nowrap;margin-left:auto}.messagebar #live{white-space:nowrap}
+.workbook.compact-mode .ribbon{height:0;min-height:0;padding:0;border:0;overflow:hidden}
+.workbook.compact-mode .menubar{height:31px;flex-basis:31px}
+.workbook.compact-mode .titlebar{height:29px;min-height:29px}
+.workbook.compact-mode .formula{height:29px;min-height:29px}
+.workbook.compact-mode .sheet-scroller{min-height:100px}
+.workbook.compact-mode .fit-button{background:#515d57;border-color:#b5c4ba}
+@media(max-width:1000px){.mock-search{display:none}.window-title{position:static;transform:none;margin-left:5px}.ribbon{height:105px;min-height:105px}.ribbon-group{height:96px}.style-tools,.cells-tools{display:none}}
+@media(max-width:700px){
+ .titlebar{height:31px;min-height:31px;gap:8px;padding:0 8px}
+ .window-title{font-size:11px;max-width:calc(100vw - 154px);overflow:hidden;text-overflow:ellipsis}
+ .quick-icons{font-size:16px;letter-spacing:0}.window-corner{display:none}
+ .menubar{height:31px;flex-basis:31px;padding:0 3px}
+ .menubar>span{font-size:10px;padding:7px 10px}
+ .fit-button{position:sticky;right:0;margin:4px 3px 4px auto;background:#323232;font-size:11px;padding:0 9px;z-index:3}
+ .ribbon{height:77px;min-height:77px;padding-top:4px}
+ .ribbon-group{height:70px;padding:0 8px}
+ .ribbon-contents{font-size:10px}.ribbon-group small{font-size:9px}
+ .clipboard .paste-icon{font-size:23px}.stacked{font-size:9px;gap:2px}
+ .control-line{font-size:10px;gap:6px}
+ .fontbox{min-width:75px}.fontsize{min-width:34px}.fontbox,.fontsize{height:21px;padding:2px 4px}
+ .alignment{display:none}
+ .formula{height:30px;min-height:30px}.namebox{min-width:51px;width:51px;padding:6px}
+ .formula-symbols{padding:5px 8px}.formula-value{padding:6px 8px}
+ .worksheet{font-size:11px}.worksheet th,.worksheet td{padding:2px 5px}
+ .workbook-footer{height:36px;min-height:36px;padding:0 4px}.navicons{display:none}
+ .sheet-tabs .sheet-tab{padding:0 9px;font-size:11px}
+ .zoom-controls{gap:0}.zoom-controls input{width:50px}
+ .zoom-controls button{min-width:20px}.zoom-controls #zoom-label{min-width:37px;font-size:10px}
+ .messagebar{font-size:10px;height:27px;min-height:27px;padding:2px 6px}
+ .messagebar #updated{display:none}
+ .col-row{width:25px}.col-a{width:98px}.col-b{width:130px}.col-k{width:151px}
+}
+@media(max-width:380px){.zoom-controls input{display:none}.sheet-tabs .sheet-tab{padding:0 7px;font-size:10px}.font-tools{display:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-/* A workbook, not a dashboard: neutral row/column surfaces, modest active-tab accent. */
-.sheet-tabs{display:flex;align-items:stretch;height:100%;gap:2px;white-space:nowrap;overflow-x:auto;scrollbar-width:thin;min-width:0}
-.sheet-tabs .sheet-tab{appearance:none;font:inherit;min-height:34px;padding:0 13px;border-top:0;border-bottom:3px solid transparent;border-left:1px solid #e2e5e4;border-right:1px solid #e2e5e4;border-radius:0;cursor:pointer;color:#555f59;background:#f9faf9}
-.sheet-tabs .sheet-tab.active{background:#fff;border-bottom-color:#64776b;color:#313c34;font-weight:650}
-.sheet-tabs .sheet-tab:hover{background:#f0f2f1}
-.sheet-tabs .sheet-tab:focus-visible{outline:2px solid #70887a;outline-offset:-2px}
-.workbook-footer{gap:6px;padding:0 8px}
-.workbook-footer .rightstat{color:#555e59}
-.worksheet td.active-cell{outline-color:#6d8273}
-.worksheet tr.sheet-data-row:hover td{background:#fafbfb}
-@media(max-width:520px){.sheet-tabs .sheet-tab{font-size:11px;padding:0 10px}.workbook-footer .zoom{display:none}.sheet-tabs{max-width:calc(100vw - 125px)}}
