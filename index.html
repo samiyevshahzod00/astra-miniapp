@@ -1,48 +1,22 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark"><meta name="referrer" content="no-referrer">
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://telegram.org; style-src 'self'; connect-src https:; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Astra • Savdo jadvali</title><link rel="stylesheet" href="./style.css">
+<title>Hisobot.xlsx</title><link rel="stylesheet" href="./style.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script><script defer src="./config.js"></script><script defer src="./app.js"></script></head>
-<body><main class="shell">
-<header class="top"><div><div class="eyebrow">ASTRA <span class="demo">DEMO</span></div><h1>Savdo paneli</h1><p class="sub">Excel uslubidagi jonli broker jadvali · Telegram orqali boshqarish</p></div>
-<div class="head-status"><span class="pill" id="live">Tekshirilmoqda…</span><small id="updated">—</small></div></header>
-<div id="notice" class="notice" role="status" aria-live="polite">Telegram sessiyasi va VPS holati tekshirilmoqda…</div>
-<nav class="tabs" aria-label="Bo‘limlar"><button type="button" class="tab active" data-tab="trades">📋 Bitimlar</button><button type="button" class="tab" data-tab="signals">📈 Signallar</button><button type="button" class="tab" data-tab="status">⚙️ Holat</button></nav>
-
-<section id="tab-trades" class="pane" aria-labelledby="trades-heading">
-<div class="summary">
-<div class="metric"><span>Ochiq bitimlar</span><strong id="count">—</strong></div>
-<div class="metric"><span>Joriy foyda/zarar</span><strong id="floating">—</strong></div>
-<div class="metric"><span>Foydada</span><strong id="wins" class="good">—</strong></div>
-<div class="metric"><span>Zararda</span><strong id="losses" class="bad">—</strong></div>
+<body>
+<div class="workbook" aria-label="Astra DEMO savdo jadvali">
+  <header class="titlebar"><span class="fileicon" aria-hidden="true">X</span><span class="filename">Hisobot.xlsx</span><span class="saved">✓ Saqlangan</span><span class="fill"></span><span class="windowhint">▣</span></header>
+  <nav class="menubar" aria-label="Elektron jadval menyusi"><span class="selected">Bosh sahifa</span><span>Kiritish</span><span>Formulalar</span><span>Maʼlumotlar</span><span>Koʻrinish</span></nav>
+  <div class="ribbon" aria-hidden="true"><div class="ribbon-set"><b>Calibri</b><small>11</small></div><div class="ribbon-set"><span class="boldchar">B</span><i>I</i><u>U</u><span class="separator"></span><span>A<span class="underline-green">▁</span></span></div><div class="ribbon-set"><span>≡</span><span>☰</span><span>▤</span><span class="separator"></span><span>∑</span><span>0.00</span><span>%</span></div><div class="ribbon-set ribbon-right"><span>▥ Jadval</span><span>⌕</span></div></div>
+  <div class="formula"><span class="namebox" id="selected-address">A1</span><span class="fx">fx</span><span id="formula-value" class="formula-value">Hisobot.xlsx</span></div>
+  <div class="sheet-scroller" tabindex="0" role="region" aria-label="Savdo natijalari elektron jadvali, chap-o‘ngga surish mumkin">
+    <table class="worksheet" aria-label="Excel uslubidagi jonli broker jadvali">
+      <colgroup><col class="col-row"><col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d"><col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h"><col class="col-i"><col class="col-j"><col class="col-k"></colgroup>
+      <thead><tr><th class="corner" scope="col"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th></tr></thead>
+      <tbody id="sheet-body"><tr><th class="rownum">1</th><td colspan="11">Telegram ma’lumotlari tekshirilmoqda…</td></tr></tbody>
+    </table>
+  </div>
+  <footer class="workbook-footer"><span class="navicons" aria-hidden="true">‹ &nbsp; ›</span><span class="sheet-tab">▤ &nbsp; 1-varaq</span><span class="plus" aria-hidden="true">＋</span><span class="fill"></span><span class="rightstat" id="live">Tekshirilmoqda</span><span class="zoom">100%</span></footer>
+  <div class="messagebar"><span id="notice" role="status" aria-live="polite">Telegram sessiyasi va broker ma’lumotlari tekshirilmoqda…</span><span id="updated">—</span></div>
 </div>
-<div class="sheet">
-<div class="sectionhead"><h2 id="trades-heading">Ochiq pozitsiyalar</h2><span class="hint" id="trades-source">Brokerdan ma’lumot olinmoqda…</span></div>
-<div class="toolbar">
-<button type="button" id="close-profit" data-action="profit" class="action goodbtn" disabled>🟢 Foydadagilarni yopish</button>
-<button type="button" id="close-loss" data-action="loss" class="action badbtn" disabled>🔴 Zarardagilarni yopish</button>
-<button type="button" id="close-all" data-action="all" class="action danger" disabled>⛔ Hammasini yopish</button>
-</div>
-<div class="tablewrap" role="region" aria-label="Ochiq bitimlar jadvali" tabindex="0"><table>
-<thead><tr><th>№ / Ticket</th><th>Instrument</th><th>Yo‘nalish</th><th>Lot</th><th>Kirish</th><th>Joriy narx</th><th>SL</th><th>TP</th><th>Foyda/zarar</th><th>Swap</th><th>Amal</th></tr></thead>
-<tbody id="trade-rows"><tr><td colspan="11" class="empty">Tekshirilmoqda…</td></tr></tbody>
-<tfoot><tr><th colspan="8">Jami ochiq P/L</th><th id="total-pnl">—</th><th id="total-swap">—</th><th>—</th></tr></tfoot></table></div>
-<p class="footnote">P/L — brokerdagi hozirgi suzuvchi natija; yopilish narxida o‘zgarishi mumkin. «Yopish» avval Telegram botga tasdiqlash so‘rovi yuboradi, pozitsiyani darhol yopmaydi.</p>
-</div></section>
-
-<section id="tab-signals" class="pane hidden" aria-labelledby="signals-heading">
-<div class="sheet">
-<div class="sectionhead"><h2 id="signals-heading">Signal grafikasi</h2><span class="hint" id="signal-updated">—</span></div>
-<p class="footnote">Grafikdagi belgilar haqiqiy oxirgi skan holatini bildiradi. Ular sham narxi grafigi yoki BUY/SELL tavsiyasi emas.</p>
-<div class="legend"><span><i class="dot buy"></i> BUY</span><span><i class="dot sell"></i> SELL</span><span><i class="dot hold"></i> Signal yo‘q / blok</span></div>
-<div class="signalchart" id="signal-chart" role="img" aria-label="Instrumentlar bo‘yicha haqiqiy signal skan holatlari">Tekshirilmoqda…</div>
-<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th>Instrument</th><th>TF</th><th>Yo‘nalish</th><th>Skan sababi</th><th>Vaqt (UTC)</th></tr></thead><tbody id="signal-rows"><tr><td colspan="5" class="empty">Tekshirilmoqda…</td></tr></tbody></table></div>
-</div></section>
-
-<section id="tab-status" class="pane hidden" aria-labelledby="status-heading">
-<div class="summary"><div class="metric"><span>Bot</span><strong id="health">—</strong></div><div class="metric"><span>Yangi kirish</span><strong id="entry">—</strong></div><div class="metric"><span>Broker vaqti</span><strong id="clock">—</strong></div><div class="metric"><span>Status yoshi</span><strong id="freshness">—</strong></div></div>
-<div class="sheet"><h2 id="status-heading">Strategiyalar</h2><div class="statusline"><span>H1 + M30</span><strong id="h1">—</strong></div><div class="statusline"><span>Klassik M15</span><strong id="m15">—</strong></div><div class="statusline"><span>Klassik M30</span><strong id="m30">—</strong></div><div class="statusline"><span>Crypto M5</span><strong id="crypto">—</strong></div><div class="statusline"><span>GOLD M5</span><strong id="gold">—</strong></div><p class="footnote">ON — strategiya sozlamada yoqilgan, bitim ochilishi kafolatlanmaydi.</p></div>
-<div class="sheet"><h2>Risk va blok holati</h2><p id="blocks" class="blocks">Tekshirilmoqda…</p></div></section>
-<footer><span>ASTRA DEMO · owner-only Telegram</span><span>SL/TP, risk va PAUSED himoyalari saqlanadi</span></footer>
-</main></body></html>
+</body></html>
