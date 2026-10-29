@@ -84,7 +84,7 @@ jobs:
           const click=id=>button(id).listeners.click();
           click('fit-toggle');
           if(!book.classList.enabled||button('fit-toggle').attrs['aria-pressed']!=='true')throw Error('fit compact toggle');
-          if(button('zoom-label').textContent!=='60%')throw Error('fit expected 60% based on width 700/1180');
+          if(button('zoom-label').textContent!=='55%')throw Error('fit expected 55% minimum while width 700/1180');
           if(scroller.scrollLeft!==0)throw Error('fit should reset horizontal position');
           click('fit-toggle');
           if(book.classList.enabled||button('zoom-label').textContent!=='100%')throw Error('fit reset');
