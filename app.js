@@ -149,7 +149,7 @@ async function requestClose(action,ticket){
  }
  state.busy=true;render();
  const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),20000);
- let sent=false;
+ let sent=false,needTelegram=false;
  try{
   const res=await fetch(new URL('api/close-request',api).href,{
    method:'POST',
@@ -170,6 +170,7 @@ async function requestClose(action,ticket){
     'NO_OPEN_POSITIONS':'Hozir ochiq bitim qolmagan.',
     'INVALID_CLOSE_SELECTION':'Noto‘g‘ri yoki eskirgan bitim tanlangan. Jadvalni yangilang.',
     'MT5_POSITIONS_NOT_VERIFIED_RETRY':'MT5 broker ma’lumotlari tasdiqlanmadi. Birozdan keyin qayta tekshiring.',
+    'NATIVE_CLOSE_BRIDGE_NOT_READY':'Native bir bosishda yopish hali faollashtirilmagan yoki bot tayyor emas. Bu so‘rov orqali bitim yopilmadi.',
     'TELEGRAM_DELIVERY_FAILED_RETRY':'Telegram tasdiq xabarini olgani tasdiqlanmadi. Takrorlashdan oldin Telegram chatni tekshiring.',
     'RATE_LIMITED':'So‘rovlar orasida kamida 10 soniya kuting.'
    };
@@ -185,11 +186,20 @@ async function requestClose(action,ticket){
    };
    throw Error(descriptions[error]||fallback[res.status]||('So‘rov rad etildi: HTTP '+res.status));
   }
-  if(payload.queued_for_owner!==true||payload.trade_executed!==false)
-   throw Error('Telegram tasdiq xabarini yuborish tekshirilmadi. Bitim yopildi deb hisoblanmaydi.');
-  sent=true;
-  state.actionNotice='Telegram botga yopish so‘rovi yuborildi. Bitim hali YOPILMADI. Telegram chatida yakuniy tasdiq zarur.';
-  state.actionNoticeUntil=Date.now()+60000;
+  if(payload.trade_executed!==false)
+   throw Error('Broker ijrosi tasdiqlanmagan; javobni muvaffaqiyat deb hisoblamang.');
+  if(payload.queued_for_bot===true&&typeof payload.nonce==='string'){
+   // Native bot, not the separate web server, is the sole MT5 order writer.
+   sent=true;
+   state.actionNotice='Yopish so‘rovi native DEMO botga uzatildi. Bu hali bitim yopildi degani emas. Pozitsiyalar avtomatik yangilanadi.';
+   state.actionNoticeUntil=Date.now()+60000;
+  }else if(payload.queued_for_owner===true){
+   sent=true;needTelegram=true;
+   state.actionNotice='Telegram botga yopish so‘rovi yuborildi. Bitim hali YOPILMADI. Telegram chatida yakuniy tasdiq zarur.';
+   state.actionNoticeUntil=Date.now()+60000;
+  }else{
+   throw Error('Yopish so‘rovi qaysi ijro kanaliga yuborilgani tasdiqlanmadi.');
+  }
  }catch(error){
   const message=error?.name==='AbortError'
    ?'Telegram javobi kechikdi. Xabar bor-yo‘qligini Telegram chatdan tekshiring, so‘rovni ketma-ket takrorlamang.'
@@ -200,7 +210,7 @@ async function requestClose(action,ticket){
   clearTimeout(timer);state.busy=false;render();
   if(!sent)setTimeout(refresh,400);
  }
- if(sent&&typeof tg?.close==='function'){
+ if(sent&&needTelegram&&typeof tg?.close==='function'){
   // Bot's official confirmation message was created; return to that Telegram chat.
   // This does NOT claim the broker has closed any trade.
   setTimeout(()=>tg.close(),1000);
