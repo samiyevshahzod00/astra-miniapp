@@ -1,0 +1,42 @@
+name: Astra Excel broker receipt UI OFF regression
+on:
+  push:
+    branches: [fix/one-tap-broker-receipt-ui-20261030]
+    paths: ['app.js','index.html','style.css','.github/workflows/broker-receipt-ui-offline.yml']
+  pull_request:
+    paths: ['app.js','index.html','style.css','.github/workflows/broker-receipt-ui-offline.yml']
+permissions:
+  contents: read
+jobs:
+  receipt-ui-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Syntax and Excel/receipt fail-safe regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          js=Path("app.js").read_text(encoding="utf-8")
+          html=Path("index.html").read_text(encoding="utf-8")
+          for snippet in (
+              "api/close-request","api/close-result?nonce=",
+              "state.closePendingNonce","payload.trade_executed!==false",
+              "broker_confirmed_full_close===true","PARTIAL_OR_FAILED",
+              "UNKNOWN_RECONCILE","queued_for_owner===true",
+              "X-Telegram-Init-Data","needTelegram&&typeof tg?.close"
+          ):
+              assert snippet in js, snippet
+          for snippet in ("data-sheet=\"trades\"","data-sheet=\"signals\"",
+                          "data-sheet=\"status\"","zoom-slider","fit-toggle"):
+              assert snippet in html,snippet
+          assert "innerHTML" not in js
+          assert "order_send" not in js
+          assert js.count("new URL('api/close-result?nonce=")==1
+          print("ASTRA_EXCEL_SIGNED_BROKER_RECEIPT_UI_STATIC_PASS_NO_DEPLOY")
+          PY
