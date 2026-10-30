@@ -1,0 +1,68 @@
+name: Telegram Astra Excel mobile touch and zoom Chromium smoke OFFLINE NO ORDERS
+on:
+  push:
+    branches: [main, tests/mobile-telegram-viewport-no-orders-20261030]
+    paths: ['.github/workflows/telegram-mobile-chromium-ui-e2e-offline.yml','app.js','index.html','style.css','config.js']
+permissions:
+  contents: read
+jobs:
+  mobile-dom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium headless tester
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-audit --no-fund playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Test local workbook on 320 360 390 430 and tablet touch viewports
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --input-type=module <<'JS'
+          import {chromium} from 'playwright';
+          import {pathToFileURL} from 'node:url';
+          import {resolve} from 'node:path';
+          const browser=await chromium.launch({headless:true});
+          try{
+            for(const [width,height] of [[320,640],[360,740],[390,844],[430,932],[768,1024]]){
+              const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+              const page=await context.newPage();
+              const route=pathToFileURL(resolve('index.html')).href;
+              await page.goto(route,{waitUntil:'domcontentloaded',timeout:15000});
+              await page.locator('#fit-toggle').waitFor();
+              const state=await page.evaluate(()=>{
+                const wb=document.querySelector('.workbook'),sheet=document.querySelector('#sheet-scroller'),footer=document.querySelector('.workbook-footer');
+                const r=el=>{const x=el.getBoundingClientRect();return {left:x.left,right:x.right,top:x.top,bottom:x.bottom,width:x.width,height:x.height}};
+                return {vw:innerWidth,wb:r(wb),scroller:r(sheet),footer:r(footer),docWidth:document.documentElement.scrollWidth};
+              });
+              const fail=x=>{throw Error(width+'x'+height+': '+x+' '+JSON.stringify(state))};
+              if(state.docWidth>width+2)fail('document horizontal overflow outside the intended worksheet scroller');
+              if(state.wb.width>width+2 || state.wb.height>height+2)fail('workbook overflow');
+              if(state.scroller.height<75)fail('grid too small to interact');
+              if(state.footer.top<state.scroller.top || state.footer.bottom>height+2)fail('tabs/zoom clipped');
+              for(const name of ['trades','signals','status']){
+                await page.locator('[data-sheet="'+name+'"]').click();
+                if(await page.locator('[data-sheet="'+name+'"]').getAttribute('aria-selected')!=='true')fail('tab not selectable '+name);
+              }
+              await page.locator('#zoom-out').click();
+              if(!(await page.locator('#zoom-label').innerText()).includes('95%'))fail('zoom-out failed');
+              await page.locator('#zoom-in').click();
+              if(!(await page.locator('#zoom-label').innerText()).includes('100%'))fail('zoom-in failed');
+              await page.locator('#fit-toggle').click();
+              if(await page.locator('#fit-toggle').getAttribute('aria-pressed')!=='true')fail('compact fit failed');
+              await page.locator('#fit-toggle').click();
+              if(await page.locator('#fit-toggle').getAttribute('aria-pressed')!=='false')fail('compact reset failed');
+              console.log('ASTRA_MOBILE_HEADLESS_DOM_PASS '+width+'x'+height+' no network trading, no broker orders');
+              await context.close();
+            }
+          }finally{await browser.close()}
+          JS
