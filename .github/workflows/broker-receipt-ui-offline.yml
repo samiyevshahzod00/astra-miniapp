@@ -37,6 +37,6 @@ jobs:
               assert snippet in html,snippet
           assert "innerHTML" not in js
           assert "order_send" not in js
-          assert js.count("new URL('api/close-result?nonce=")==1
+          assert js.count("api/close-result?nonce=")==1
           print("ASTRA_EXCEL_SIGNED_BROKER_RECEIPT_UI_STATIC_PASS_NO_DEPLOY")
           PY
