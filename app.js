@@ -20,12 +20,28 @@ function restoreNativeNonce(){
  }catch{}
  return null;
 }
+function closeSessionAgeSeconds(){
+ // Read-only date parsing; the backend always validates Telegram's signed
+ // HMAC and its own clock. Never trust client time to authorize a trade.
+ try{
+  const raw=new URLSearchParams(tg?.initData||'').get('auth_date');
+  if(!raw||!/^[0-9]{9,12}$/.test(raw))return null;
+  const age=Math.floor(Date.now()/1000)-Number(raw);
+  return Number.isFinite(age)?age:null;
+ }catch{return null}
+}
+function closeSessionReady(){
+ const age=closeSessionAgeSeconds();
+ // Server requires <=300 seconds. Reserve 30 seconds for phone/network delay.
+ return age!==null&&age>=0&&age<=270;
+}
+const closeSessionHelp='Bir bosishda yopish uchun Telegram sessiyasi yangilanishi kerak: Hisobot Mini App’ni butunlay yoping va Telegram chatidan qayta oching. Pozitsiyalar ko‘rinsa ham 5 daqiqadan eski sessiyada yopish ishlamaydi.';
 function value(id,v){const t=byId(id);if(t)t.textContent=String(v??'—')}
 function money(v,c='USD'){return Number.isFinite(v)?(v>=0?'+':'')+v.toFixed(2)+' '+c:'#N/A'}
 function dec(v,n=5){if(!Number.isFinite(v))return '#N/A';return Number(v).toFixed(n).replace(/0+$/,'').replace(/\.$/,'')}
 function text(v){return v==null?'':String(v)}
 function button(name,action,ticket,enabled,kind){
- const b=document.createElement('button');b.type='button';b.className='cellbutton'+(kind?' '+kind:'');b.textContent=name;b.dataset.action=action;if(ticket)b.dataset.ticket=ticket;b.disabled=!enabled;return b;
+ const b=document.createElement('button');b.type='button';b.className='cellbutton'+(kind?' '+kind:'');b.textContent=name;b.dataset.action=action;if(ticket)b.dataset.ticket=ticket;b.disabled=!enabled;if(!enabled)b.title=state.closePendingNonce?'Oldingi yopish natijasi tekshirilmoqda':!closeSessionReady()?'Yopish uchun Telegram Mini App’ni qayta oching':'Broker holati tekshirilmoqda';return b;
 }
 function row(cells=[],klass=''){
  const tr=document.createElement('tr');tr.className=klass;const num=document.createElement('th');num.className='rownum';num.scope='row';num.textContent=String(body.childElementCount+1);tr.append(num);
@@ -121,7 +137,7 @@ function render(){
  body.replaceChildren();
  const status=state.status,positions=state.positions,safe=isDemo(status);
  const snapshot=goodBroker(positions),items=snapshot?positions.rows:[],currency=positions?.currency||'USD';
- const canAction=!!(safe&&snapshot&&!state.busy&&!state.closePendingNonce);
+ const canAction=!!(safe&&snapshot&&closeSessionReady()&&!state.busy&&!state.closePendingNonce);
  if(state.sheet==='signals')renderSignals(state.signals);
  else if(state.sheet==='status')renderStatus(status,safe);
  else renderTrades(status,positions,safe,snapshot,items,currency,canAction);
@@ -132,6 +148,13 @@ function render(){
  if(state.actionNotice&&Date.now()<state.actionNoticeUntil)value('notice',state.actionNotice);
  else if(state.closePendingNonce)value('notice','Yopish natijasi tekshirilmoqda yoki noma’lum. Yangi yopish xavfsizlik uchun bloklangan.');
  else if(state.error)value('notice',state.error);
+ const alert=byId('close-feedback');
+ if(alert){
+  const activeNotice=state.actionNotice&&Date.now()<state.actionNoticeUntil?state.actionNotice:null;
+  const text=activeNotice||(state.closePendingNonce?'Oldingi yopish so‘rovi natijasi noma’lum yoki hali tekshirilmoqda. Yangi yuborish bloklangan.':safe&&snapshot&&!closeSessionReady()?closeSessionHelp:null);
+  alert.hidden=!text;
+  alert.textContent=text||'';
+ }
 }
 function switchSheet(sheet){
  if(!['trades','signals','status'].includes(sheet)||sheet===state.sheet)return;
@@ -202,6 +225,10 @@ async function watchNativeResult(nonce){
  render();await refresh();
 }
 async function requestClose(action,ticket){
+ if(!closeSessionReady()){
+  state.actionNotice=closeSessionHelp;
+  state.actionNoticeUntil=Date.now()+120000;render();return;
+ }
  if(state.busy||state.closePendingNonce||!isDemo(state.status)||!goodBroker(state.positions)){
   state.actionNotice='Broker holati eskirgan. Avval jadvalni yangilang yoki Telegram Mini App’ni qayta oching.';
   state.actionNoticeUntil=Date.now()+30000;render();return;
