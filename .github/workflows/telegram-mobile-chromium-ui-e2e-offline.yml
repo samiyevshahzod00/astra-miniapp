@@ -1,7 +1,7 @@
 name: Telegram Astra Excel mobile touch and zoom Chromium smoke OFFLINE NO ORDERS
 on:
   push:
-    branches: [tests/mobile-telegram-viewport-no-orders-20261030]
+    branches: [main, tests/mobile-telegram-viewport-no-orders-20261030]
     paths: ['.github/workflows/telegram-mobile-chromium-ui-e2e-offline.yml','app.js','index.html','style.css','config.js']
 permissions:
   contents: read
