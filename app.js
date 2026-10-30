@@ -1,7 +1,25 @@
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),tg=window.Telegram?.WebApp,conf=window.ASTRA_PUBLIC_CONFIG||{},api=String(conf.apiBase||'');
 const allowedApi=(()=>{try{const u=new URL(api);return u.protocol==='https:'&&!u.username&&!u.password&&!u.search&&!u.hash&&!u.port&&(u.pathname==='/'||u.pathname==='')}catch{return false}})();
-const cols='ABCDEFGHIJKLMNOPQRST',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades',actionNotice:null,actionNoticeUntil:0};
+const cols='ABCDEFGHIJKLMNOPQRST',body=byId('sheet-body'),state={status:null,positions:null,signals:null,loading:false,busy:false,checked:null,error:null,select:'A1',sheet:'trades',actionNotice:null,actionNoticeUntil:0,closePendingNonce:null};
+const closeStoreKey='astra_demo_close_inflight_nonce_v1';
+function rememberNativeNonce(nonce){
+ try{
+  if(nonce)localStorage.setItem(closeStoreKey,nonce);
+  else localStorage.removeItem(closeStoreKey);
+ }catch{}
+ state.closePendingNonce=nonce;
+}
+function restoreNativeNonce(){
+ try{
+  const prior=localStorage.getItem(closeStoreKey);
+  if(typeof prior==='string'&&/^[0-9a-f]{32}$/.test(prior)){
+   state.closePendingNonce=prior;return prior;
+  }
+  if(prior!==null)localStorage.removeItem(closeStoreKey);
+ }catch{}
+ return null;
+}
 function value(id,v){const t=byId(id);if(t)t.textContent=String(v??'—')}
 function money(v,c='USD'){return Number.isFinite(v)?(v>=0?'+':'')+v.toFixed(2)+' '+c:'#N/A'}
 function dec(v,n=5){if(!Number.isFinite(v))return '#N/A';return Number(v).toFixed(n).replace(/0+$/,'').replace(/\.$/,'')}
@@ -56,7 +74,7 @@ function renderTrades(status,positions,safe,snapshot,items,currency,canAction){
  row([{v:button('Foydadagilarni yopish','profit','',canAction&&items.some(p=>p.profit>0)),span:3},
  {v:button('Zarardagilarni yopish','loss','',canAction&&items.some(p=>p.profit<0)),span:3},
  {v:button('Hammasini yopish','all','',canAction&&items.length>0),span:3},{v:'',span:2}]);
- row([{v:'Yopish so‘rovi Telegramga yuboriladi; botning yakuniy tasdig‘i hali talab qilinadi.',span:11,cls:'note-cell'}]);
+ row([{v:'DEMO: native rejimda so‘rov botda bajariladi va broker receipt orqali tekshiriladi. Eski rejimda Telegram tasdig‘i talab qilinadi.',span:11,cls:'note-cell'}]);
  blank();row([{v:'DEMO · broker P/L joriy narx bilan o‘zgaradi · faqat shaxsiy Telegram sessiyasi',span:11,cls:'note-cell'}]);
 }
 function renderSignals(signals){
@@ -103,7 +121,7 @@ function render(){
  body.replaceChildren();
  const status=state.status,positions=state.positions,safe=isDemo(status);
  const snapshot=goodBroker(positions),items=snapshot?positions.rows:[],currency=positions?.currency||'USD';
- const canAction=!!(safe&&snapshot&&!state.busy);
+ const canAction=!!(safe&&snapshot&&!state.busy&&!state.closePendingNonce);
  if(state.sheet==='signals')renderSignals(state.signals);
  else if(state.sheet==='status')renderStatus(status,safe);
  else renderTrades(status,positions,safe,snapshot,items,currency,canAction);
@@ -112,6 +130,7 @@ function render(){
  value('live',safe&&(state.sheet!=='trades'||snapshot)?'Tayyor':state.error?'Xatolik':'Tekshirilmoqda');
  value('updated',state.checked||'—');
  if(state.actionNotice&&Date.now()<state.actionNoticeUntil)value('notice',state.actionNotice);
+ else if(state.closePendingNonce)value('notice','Yopish natijasi tekshirilmoqda yoki noma’lum. Yangi yopish xavfsizlik uchun bloklangan.');
  else if(state.error)value('notice',state.error);
 }
 function switchSheet(sheet){
@@ -134,12 +153,56 @@ async function refresh(){
   state.signals=result[2].status==='fulfilled'?result[2].value:null;
   state.checked=new Date().toLocaleTimeString('uz-UZ');
   state.error=(!isDemo(state.status)?'Telegram yoki bot statusi eskirgan / tasdiqlanmagan. ':(!goodBroker(state.positions)?'MT5 pozitsiyalari tasdiqlanmadi. ':(!(state.signals&&state.signals.read_only===true&&state.signals.chart_kind==='REAL_LAST_SCAN_BY_INSTRUMENT')?'Signallar tekshirilmagan. ':'')))||null;
-  if(!state.error)value('notice','Jadval broker ma’lumotlaridan yangilandi. Yopish so‘rovlari Telegram botda tasdiqlanadi.');
+  if(!state.error&&!state.closePendingNonce)value('notice','Broker ma’lumotlari yangilandi. Bitim yopilishi faqat MT5 receipt bilan tasdiqlanadi.');
  }catch{state.error='Ulanish tekshirilmadi';state.status=null;state.positions=null;state.signals=null}
  finally{state.loading=false;render()}
 }
+async function watchNativeResult(nonce){
+ // Queued means accepted for serial processing, NEVER a broker fill.
+ for(let attempt=0;attempt<45;attempt++){
+  await new Promise(resolve=>setTimeout(resolve,1800));
+  let data;
+  try{data=await choose('api/close-result?nonce='+encodeURIComponent(nonce))}
+  catch{
+   state.actionNotice='Broker natijasi tekshirilmayapti. Yangi yopish bloklangan; MT5 va bot jurnalini tekshiring.';
+   state.actionNoticeUntil=Date.now()+120000;
+   render();return;
+  }
+  const code=data?.state;
+  if(code==='COMPLETED'&&data.broker_confirmed_full_close===true){
+   state.actionNotice='MT5 broker tasdiqladi: '+String(data.requested)+' ta bitim to‘liq yopildi. Pozitsiyalar qayta tekshirilmoqda.';
+   state.actionNoticeUntil=Date.now()+120000;
+   rememberNativeNonce(null);render();await refresh();return;
+  }
+  if(code==='PARTIAL_OR_FAILED'){
+   state.actionNotice='Broker tekshiruvida qisman yopilish yoki xato qayd etildi. Avtomatik takrorlanmaydi. Yangilangan broker pozitsiyalarini tekshiring.';
+   state.actionNoticeUntil=Date.now()+120000;
+   await refresh();
+   if(goodBroker(state.positions))rememberNativeNonce(null);
+   render();return;
+  }
+  if(code==='REJECTED'){
+   state.actionNotice='Yopish bot tomonidan rad etildi, broker yopilishi tasdiqlanmadi.';
+   state.actionNoticeUntil=Date.now()+120000;
+   rememberNativeNonce(null);render();await refresh();return;
+  }
+  if(code==='UNKNOWN_RECONCILE'){
+   state.actionNotice='Broker ijrosi noma’lum. Yangi so‘rov BLOKLANGAN; operator MT5 va bot jurnalini tekshirishi zarur.';
+   state.actionNoticeUntil=Date.now()+120000;
+   render();await refresh();return;
+  }
+  if(!['PENDING','PROCESSING','NOT_FOUND'].includes(code)){
+   state.actionNotice='Broker natijasi noma’lum. Xavfsizlik uchun takroriy yopish bloklandi.';
+   state.actionNoticeUntil=Date.now()+120000;
+   render();return;
+  }
+ }
+ state.actionNotice='Yopish natijasi belgilangan muddatda tasdiqlanmadi. Yangi so‘rov BLOKLANGAN; MT5 ni tekshiring.';
+ state.actionNoticeUntil=Date.now()+120000;
+ render();await refresh();
+}
 async function requestClose(action,ticket){
- if(state.busy||!isDemo(state.status)||!goodBroker(state.positions)){
+ if(state.busy||state.closePendingNonce||!isDemo(state.status)||!goodBroker(state.positions)){
   state.actionNotice='Broker holati eskirgan. Avval jadvalni yangilang yoki Telegram Mini App’ni qayta oching.';
   state.actionNoticeUntil=Date.now()+30000;render();return;
  }
@@ -149,7 +212,7 @@ async function requestClose(action,ticket){
  }
  state.busy=true;render();
  const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),20000);
- let sent=false,needTelegram=false;
+ let sent=false,needTelegram=false,nativeNonce=null;
  try{
   const res=await fetch(new URL('api/close-request',api).href,{
    method:'POST',
@@ -188,9 +251,9 @@ async function requestClose(action,ticket){
   }
   if(payload.trade_executed!==false)
    throw Error('Broker ijrosi tasdiqlanmagan; javobni muvaffaqiyat deb hisoblamang.');
-  if(payload.queued_for_bot===true&&typeof payload.nonce==='string'){
+  if(payload.queued_for_bot===true&&typeof payload.nonce==='string'&&/^[0-9a-f]{32}$/.test(payload.nonce)){
    // Native bot, not the separate web server, is the sole MT5 order writer.
-   sent=true;
+   sent=true;nativeNonce=payload.nonce;rememberNativeNonce(nativeNonce);
    state.actionNotice='Yopish so‘rovi native DEMO botga uzatildi. Bu hali bitim yopildi degani emas. Pozitsiyalar avtomatik yangilanadi.';
    state.actionNoticeUntil=Date.now()+60000;
   }else if(payload.queued_for_owner===true){
@@ -202,14 +265,15 @@ async function requestClose(action,ticket){
   }
  }catch(error){
   const message=error?.name==='AbortError'
-   ?'Telegram javobi kechikdi. Xabar bor-yo‘qligini Telegram chatdan tekshiring, so‘rovni ketma-ket takrorlamang.'
+   ?'So‘rov natijasi noma’lum. Xabar yoki broker ijrosi bajarilgan bo‘lishi mumkin; takrorlashdan oldin MT5 va Telegramni tekshiring.'
    :String(error?.message||'Aloqa xatosi');
-  state.actionNotice='Yopish so‘rovi bajarilmadi: '+message;
+  state.actionNotice='Yopish so‘rovi tasdiqlanmadi: '+message;
   state.actionNoticeUntil=Date.now()+60000;
  }finally{
   clearTimeout(timer);state.busy=false;render();
   if(!sent)setTimeout(refresh,400);
  }
+ if(sent&&nativeNonce)void watchNativeResult(nativeNonce);
  if(sent&&needTelegram&&typeof tg?.close==='function'){
   // Bot's official confirmation message was created; return to that Telegram chat.
   // This does NOT claim the broker has closed any trade.
@@ -259,5 +323,10 @@ document.querySelectorAll('button[data-sheet]').forEach(b=>{b.tabIndex=b.dataset
 if(tg){tg.ready();tg.expand()}
 if(!allowedApi){state.error='HTTPS API manzili noto‘g‘ri';render();return}
 if(!tg?.initData){state.error='Hisobotni Telegramdagi shaxsiy tugmadan oching. Brauzerda broker ma’lumotlari yashiriladi.';render();return}
-render();refresh();setInterval(()=>{if(document.visibilityState==='visible')refresh()},4000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+const resumedNativeNonce=restoreNativeNonce();
+if(resumedNativeNonce){
+ state.actionNotice='Oldingi yopish natijasi tasdiqlanmaguncha yangi so‘rov bloklangan.';
+ state.actionNoticeUntil=Date.now()+120000;
+}
+render();refresh();if(resumedNativeNonce)void watchNativeResult(resumedNativeNonce);setInterval(()=>{if(document.visibilityState==='visible')refresh()},4000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
 })();
