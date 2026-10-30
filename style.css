@@ -37,6 +37,7 @@ html,body{margin:0;height:100%;background:#fff;color:var(--text);font:12px/1.35 
 .namebox{width:85px;min-width:85px;padding:8px;border-right:1px solid #484848;display:grid;place-items:center;font-size:12px;background:#343434}
 .formula-symbols{padding:7px 13px;color:#bcbcbc;border-right:1px solid #444;white-space:nowrap;font-size:15px}
 .formula-value{flex:1;padding:8px 12px;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.close-feedback{flex:0 0 auto;border-top:1px solid #b68a48;border-bottom:1px solid #b68a48;background:#fff6e8;color:#392b17;padding:9px 12px;font-weight:600;font-size:12px;line-height:1.4;max-height:118px;overflow-y:auto;overflow-wrap:anywhere}.close-feedback[hidden]{display:none}
 .sheet-scroller{flex:1;min-height:100px;position:relative;overflow:auto;overscroll-behavior:contain;background:#fff;background-image:linear-gradient(90deg,transparent calc(100% - 1px),#e1e1e1 calc(100% - 1px)),linear-gradient(transparent calc(100% - 1px),#e1e1e1 calc(100% - 1px));background-size:90px 23px;scrollbar-color:#aaa #eee;scrollbar-width:thin}
 .worksheet{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;font-size:12px;font-variant-numeric:tabular-nums;background:white;zoom:100%}
 .col-row{width:29px}.col-a{width:106px}.col-b{width:145px}.col-c{width:90px}.col-d{width:80px}.col-e{width:96px}.col-f{width:105px}.col-g{width:100px}.col-h{width:100px}.col-i{width:136px}.col-j{width:94px}.col-k{width:168px}.col-extra{width:86px}
