@@ -36,6 +36,7 @@ async function scenario(age,mode='accepted'){
   isDemo:d=>d?.mode==='DEMO'&&d?.stale===false,
   goodBroker:p=>p?.rows?.length===p?.count,
   render(){renderCount++},
+  refresh(){},
   rememberNativeNonce(nonce){stored.push(nonce);state.closePendingNonce=nonce},
   watchNativeResult(nonce){watches.push(nonce)},
   fetch(url,options){
